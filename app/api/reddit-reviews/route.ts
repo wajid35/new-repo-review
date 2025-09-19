@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Validate title (max 3 words)
     const words = productTitle.trim().split(/\s+/);
-    if (words.length > 3 || words.length === 0) {
+    if (words.length > 5 || words.length === 0) {
       return NextResponse.json(
         { error: 'Product title must be 1-3 words' },
         { status: 400 }

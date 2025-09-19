@@ -330,7 +330,7 @@ export default function RedditReviewsGenerator() {
       </div>
 
       {/* Fixed Input Area */}
-      <div className="absolute bottom-0 left-10 right-0 flex justify-center items-center p-4 z-100">
+      <div className="fixed bottom-0 left-10 right-0 flex justify-center items-center p-4 z-10 bg-gradient-to-t from-gray-50 to-transparent">
         <div className="flex justify-center items-center w-full">
           <div className="flex items-center space-x-3" style={{ width: '1024px' }}>
             <div className="flex-1">
