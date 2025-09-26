@@ -21,10 +21,10 @@ export default withAuth(
                 if(
                     pathname.startsWith('/api/auth') ||
                     pathname === '/login' ||
-                    pathname === '/signup' ||
                     pathname === '/' ||
                     pathname === '/products' ||
                     pathname.startsWith('/products/') ||
+                    pathname.startsWith('/categories/') ||
                     pathname.startsWith('/public')
                 ){
                     return true;
