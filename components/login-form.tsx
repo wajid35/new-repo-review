@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {  useState } from "react"
-import { useRouter } from "next/navigation";  
+import { useState } from "react"
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react"
 import LoginImg from '@/public/login-page.jpg';
 
@@ -15,22 +15,22 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
 
     const [email, setemail] = useState('');
-    const [password,setpassword]=useState('');
-    const router=useRouter();
+    const [password, setpassword] = useState('');
+    const router = useRouter();
 
-    const hanldeSubmit= async (e:React.FormEvent<HTMLFormElement>)=>{
+    const hanldeSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-       console.log('Handle submit funtion is working..');
-       const result=await signIn('credentials',{
-        email,
-        password,
-        redirect:false,
-       })
-       if(result?.error){
-        console.log(result.error);
-       }else{
-        router.push('/dashboard/allposts');
-       }
+        console.log('Handle submit funtion is working..');
+        const result = await signIn('credentials', {
+            email,
+            password,
+            redirect: false,
+        })
+        if (result?.error) {
+            console.log(result.error);
+        } else {
+            router.push('/dashboard/allposts');
+        }
 
     }
     return (
@@ -52,9 +52,9 @@ export function LoginForm({
                                     type="email"
                                     placeholder="m@example.com"
                                     value={email}
-                                    onChange={(e)=>setemail(e.target.value)}
+                                    onChange={(e) => setemail(e.target.value)}
                                     required
-                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-lime-400 focus:border-lime-400"
+                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-[#FF5F1F] focus:border-[#FF5F1F]"
                                 />
                             </div>
                             <div className="grid gap-3">
@@ -67,16 +67,16 @@ export function LoginForm({
                                         Forgot your password?
                                     </a> */}
                                 </div>
-                                <Input 
-                                    id="password" 
-                                    value={password} 
-                                    onChange={(e)=>setpassword(e.target.value)} 
-                                    type="password" 
-                                    required 
-                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-lime-400 focus:border-lime-400"
+                                <Input
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => setpassword(e.target.value)}
+                                    type="password"
+                                    required
+                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-[#FF5F1F] focus:border-[#FF5F1F]"
                                 />
                             </div>
-                            <Button type="submit" className="w-full bg-lime-400 text-black hover:bg-lime-500 font-medium">
+                            <Button type="submit" className="w-full bg-[#FF5F1F] text-black hover:bg-[#f59772] font-medium">
                                 Login
                             </Button>
                             {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">

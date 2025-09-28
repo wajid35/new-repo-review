@@ -113,7 +113,7 @@ const CategoryProducts: React.FC = () => {
                     )}
 
                     {/* Score Badge */}
-                    <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                    {/* <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-full">
                       <div className="flex items-center px-2 gap-1">
                         <span className="text-white">Product Score: </span>
                         <Star className="w-3 h-3 fill-[#FF5F1F] text-[#FF5F1F]" />
@@ -121,15 +121,15 @@ const CategoryProducts: React.FC = () => {
                           {product.productScore}
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                     {/* Like Button */}
-                    <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm p-2 rounded-full">
+                    {/* <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm p-2 rounded-full">
                       <Heart className="w-4 h-4 text-gray-400" />
-                    </div>
+                    </div> */}
                   </div>
                   {/* Product Info */}
                   <div className="space-y-3">
-                    <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-[#FF5F1F] transition-colors">
+                    <h3 className="text-xl font-bold text-white line-clamp-1 group-hover:text-[#FF5F1F] transition-colors">
                       {product.productTitle}
                     </h3>
                     <p className="text-gray-400 text-sm line-clamp-3">
@@ -151,7 +151,7 @@ const CategoryProducts: React.FC = () => {
                         <p className="text-blue-400 text-lg font-semibold mb-1">
                           Ranked #{idx + 1}
                         </p>
-                       
+
                       </div>
                     </div>
                   </div>

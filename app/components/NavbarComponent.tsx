@@ -7,8 +7,8 @@ import Link from "next/link";
 
 const navLinks = [
   { label: 'Home', href: '/' },
-  { label: 'About Us', href: '/about' },
-  { label: 'FAQs', href: '/faqs' },
+  { label: 'About Us', href: '/aboutus' },
+  { label: 'FAQs', href: '/faq' },
 ]
 
 export default function Navbar() {
@@ -78,14 +78,14 @@ export default function Navbar() {
 
                 {/* Desktop buttons */}
                 <Link href="/categories">
-                <Button variant="secondary" className="hidden cursor-pointer md:inline-flex items-center">
-                  Ranked Categories
-                </Button>
+                  <Button variant="secondary" className="hidden cursor-pointer md:inline-flex items-center">
+                    Ranked Categories
+                  </Button>
                 </Link>
                 <Link href="/products">
-                <Button variant="primary" className="hidden cursor-pointer md:inline-flex items-center">
-                  Products
-                </Button>
+                  <Button variant="primary" className="hidden cursor-pointer md:inline-flex items-center">
+                    Products
+                  </Button>
                 </Link>
               </div>
             </div>

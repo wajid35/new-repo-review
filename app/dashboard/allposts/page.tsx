@@ -16,7 +16,7 @@ const AllPosts: React.FC = () => {
     const [updateLoading, setUpdateLoading] = useState<string | null>(null);
     const [editingPost, setEditingPost] = useState<IProduct | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
-    
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const postsPerPage = 15;
@@ -69,13 +69,13 @@ const AllPosts: React.FC = () => {
             // Remove post from state
             setPosts(prevPosts => {
                 const newPosts = prevPosts.filter(post => post._id?.toString() !== postId);
-                
+
                 // Reset to first page if current page would be empty
                 const newTotalPages = Math.ceil(newPosts.length / postsPerPage);
                 if (currentPage > newTotalPages && newTotalPages > 0) {
                     setCurrentPage(1);
                 }
-                
+
                 return newPosts;
             });
             alert('Post deleted successfully!');
@@ -202,171 +202,170 @@ const AllPosts: React.FC = () => {
         <div className="min-h-screen bg-gray-50 w-full flex justify-center">
             <div className="max-w-4xl w-full p-6 flex flex-col items-center">
                 <div className="flex justify-between items-center mb-8 w-full">
-                <h1 className="text-3xl font-bold text-gray-800">All Posts</h1>
-                <div className="text-sm text-gray-500">
-                    {posts.length > 0 && (
-                        <>
-                            Page {currentPage} of {totalPages} | 
-                            Total: {posts.length} post{posts.length !== 1 ? 's' : ''}
-                        </>
-                    )}
-                    {posts.length === 0 && 'No posts found'}
+                    <h1 className="text-3xl font-bold text-gray-800">All Posts</h1>
+                    <div className="text-sm text-gray-500">
+                        {posts.length > 0 && (
+                            <>
+                                Page {currentPage} of {totalPages} |
+                                Total: {posts.length} post{posts.length !== 1 ? 's' : ''}
+                            </>
+                        )}
+                        {posts.length === 0 && 'No posts found'}
+                    </div>
                 </div>
-            </div>
 
-            {posts.length === 0 ? (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
-                    <p className="text-gray-600 text-lg mb-4">No posts found</p>
-                    <button
-                        onClick={() => window.location.href = '/dashboard/addpost'}
-                        className="bg-[#FF5F1F] text-white px-6 py-2 rounded-lg hover:bg-lime-500 transition-colors"
-                    >
-                        Create Your First Post
-                    </button>
-                </div>
-            ) : (
-                <div className="space-y-4 ">
-                    {currentPosts.map((post) => (
-                        <div
-                            key={post._id?.toString()}
-                            className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+                {posts.length === 0 ? (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
+                        <p className="text-gray-600 text-lg mb-4">No posts found</p>
+                        <button
+                            onClick={() => window.location.href = '/dashboard/addpost'}
+                            className="bg-[#FF5F1F] text-white px-6 py-2 rounded-lg hover:bg-[#f59772] transition-colors"
                         >
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1 pr-4">
-                                    {/* Post Title */}
-                                    <h2 className="text-xl font-semibold text-gray-800 mb-3 line-clamp-2">
-                                        {post.productTitle}
-                                    </h2>
+                            Create Your First Post
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-4 ">
+                        {currentPosts.map((post) => (
+                            <div
+                                key={post._id?.toString()}
+                                className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1 pr-4">
+                                        {/* Post Title */}
+                                        <h2 className="text-xl font-semibold text-gray-800 mb-3 line-clamp-2">
+                                            {post.productTitle}
+                                        </h2>
 
-                                    {/* Post Description */}
-                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 overflow-hidden w-[700px] overflow-clip">
-                                        {post.productDescription}
-                                    </p>
+                                        {/* Post Description */}
+                                        <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 overflow-hidden w-[700px] overflow-clip">
+                                            {post.productDescription}
+                                        </p>
 
-                                    {/* Post Meta Info */}
-                                    <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
+                                        {/* Post Meta Info */}
+                                        <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
+                                            <button
+                                                type="button"
+                                                className="bg-blue-500 cursor-pointer text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs font-semibold"
+                                                onClick={() => router.push(`/dashboard/allposts/view/${post._id}`)}
+                                            >
+                                                View Project
+                                            </button>
+                                            <span>
+                                                {post.productPrice}
+                                            </span>
+                                            <span>
+                                                {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Unknown date'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-col gap-2 ml-4">
                                         <button
-                                            type="button"
-                                            className="bg-blue-500 cursor-pointer text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors text-xs font-semibold"
-                                            onClick={() => router.push(`/dashboard/allposts/view/${post._id}`)}
+                                            onClick={() => handleUpdate(post)}
+                                            disabled={updateLoading === post._id?.toString()}
+                                            className="bg-[#FF5F1F] cursor-pointer text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#f59772] transition-colors min-w-[80px] disabled:opacity-50"
                                         >
-                                            View Project
+                                            {updateLoading === post._id?.toString() ? 'Updating...' : 'Update'}
                                         </button>
-                                        <span>
-                                            {post.productPrice}
-                                        </span>
-                                        <span>
-                                            {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'Unknown date'}
-                                        </span>
+
+                                        <button
+                                            onClick={() => handleDelete(post._id?.toString() || '')}
+                                            disabled={deleteLoading === post._id?.toString()}
+                                            className="bg-red-600 text-white cursor-pointer px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[80px]"
+                                        >
+                                            {deleteLoading === post._id?.toString() ? 'Deleting...' : 'Delete'}
+                                        </button>
                                     </div>
                                 </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex flex-col gap-2 ml-4">
-                                    <button
-                                        onClick={() => handleUpdate(post)}
-                                        disabled={updateLoading === post._id?.toString()}
-                                        className="bg-[#FF5F1F] cursor-pointer text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-lime-500 transition-colors min-w-[80px] disabled:opacity-50"
-                                    >
-                                        {updateLoading === post._id?.toString() ? 'Updating...' : 'Update'}
-                                    </button>
-
-                                    <button
-                                        onClick={() => handleDelete(post._id?.toString() || '')}
-                                        disabled={deleteLoading === post._id?.toString()}
-                                        className="bg-red-600 text-white cursor-pointer px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[80px]"
-                                    >
-                                        {deleteLoading === post._id?.toString() ? 'Deleting...' : 'Delete'}
-                                    </button>
-                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Pagination Component */}
-            {posts.length > postsPerPage && (
-                <div className="mt-8 flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                        <span>
-                            Showing {startIndex + 1} to {Math.min(endIndex, posts.length)} of {posts.length} posts
-                        </span>
+                        ))}
                     </div>
-                    
-                    <div className="flex items-center space-x-2">
-                        {/* Previous Button */}
-                        <button
-                            onClick={goToPreviousPage}
-                            disabled={currentPage === 1}
-                            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
-                        >
-                            Previous
-                        </button>
+                )}
 
-                        {/* Page Numbers */}
-                        <div className="flex space-x-1">
-                            {Array.from({ length: totalPages }, (_, index) => {
-                                const page = index + 1;
-                                const isCurrentPage = page === currentPage;
-                                
-                                // Show first page, last page, current page, and pages around current
-                                const shouldShow = 
-                                    page === 1 || 
-                                    page === totalPages || 
-                                    (page >= currentPage - 1 && page <= currentPage + 1);
-
-                                if (!shouldShow) {
-                                    // Show ellipsis for gaps
-                                    if (page === currentPage - 2 && currentPage > 3) {
-                                        return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
-                                    }
-                                    if (page === currentPage + 2 && currentPage < totalPages - 2) {
-                                        return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
-                                    }
-                                    return null;
-                                }
-
-                                return (
-                                    <button
-                                        key={page}
-                                        onClick={() => goToPage(page)}
-                                        className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                                            isCurrentPage
-                                                ? 'bg-[#FF5F1F] text-white border border-[#FF5F1F]'
-                                                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        {page}
-                                    </button>
-                                );
-                            })}
+                {/* Pagination Component */}
+                {posts.length > postsPerPage && (
+                    <div className="mt-8 flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center text-sm text-gray-600">
+                            <span>
+                                Showing {startIndex + 1} to {Math.min(endIndex, posts.length)} of {posts.length} posts
+                            </span>
                         </div>
 
-                        {/* Next Button */}
-                        <button
-                            onClick={goToNextPage}
-                            disabled={currentPage === totalPages}
-                            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
-            )}
+                        <div className="flex items-center space-x-2">
+                            {/* Previous Button */}
+                            <button
+                                onClick={goToPreviousPage}
+                                disabled={currentPage === 1}
+                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                            >
+                                Previous
+                            </button>
 
-            {/* Edit Modal */}
-            {showEditModal && editingPost && (
-                <EditPostModal
-                    post={editingPost}
-                    onClose={() => {
-                        setShowEditModal(false);
-                        setEditingPost(null);
-                    }}
-                    onSubmit={handleUpdateSubmit}
-                    isLoading={updateLoading === editingPost._id?.toString()}
-                />
-            )}
+                            {/* Page Numbers */}
+                            <div className="flex space-x-1">
+                                {Array.from({ length: totalPages }, (_, index) => {
+                                    const page = index + 1;
+                                    const isCurrentPage = page === currentPage;
+
+                                    // Show first page, last page, current page, and pages around current
+                                    const shouldShow =
+                                        page === 1 ||
+                                        page === totalPages ||
+                                        (page >= currentPage - 1 && page <= currentPage + 1);
+
+                                    if (!shouldShow) {
+                                        // Show ellipsis for gaps
+                                        if (page === currentPage - 2 && currentPage > 3) {
+                                            return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                                        }
+                                        if (page === currentPage + 2 && currentPage < totalPages - 2) {
+                                            return <span key={page} className="px-2 py-1 text-gray-500">...</span>;
+                                        }
+                                        return null;
+                                    }
+
+                                    return (
+                                        <button
+                                            key={page}
+                                            onClick={() => goToPage(page)}
+                                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${isCurrentPage
+                                                    ? 'bg-[#FF5F1F] text-white border border-[#FF5F1F]'
+                                                    : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Next Button */}
+                            <button
+                                onClick={goToNextPage}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Edit Modal */}
+                {showEditModal && editingPost && (
+                    <EditPostModal
+                        post={editingPost}
+                        onClose={() => {
+                            setShowEditModal(false);
+                            setEditingPost(null);
+                        }}
+                        onSubmit={handleUpdateSubmit}
+                        isLoading={updateLoading === editingPost._id?.toString()}
+                    />
+                )}
             </div>
         </div>
     );
@@ -535,7 +534,7 @@ const EditPostModal: React.FC<{
                                 type="text"
                                 value={formData.productTitle}
                                 onChange={(e) => setFormData(prev => ({ ...prev, productTitle: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
                                 required
                             />
                         </div>
@@ -546,7 +545,7 @@ const EditPostModal: React.FC<{
                                 type="text"
                                 value={formData.productPrice}
                                 onChange={(e) => setFormData(prev => ({ ...prev, productPrice: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
                                 placeholder="$99.99"
                                 required
                             />
@@ -558,7 +557,7 @@ const EditPostModal: React.FC<{
                         <textarea
                             value={formData.productDescription}
                             onChange={(e) => setFormData(prev => ({ ...prev, productDescription: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-lime-500"
+                            className="w-full p-3 border border-gray-300 rounded-lg h-24 focus:ring-2 focus:ring-[#f59772]"
                             required
                         />
                     </div>
@@ -571,7 +570,7 @@ const EditPostModal: React.FC<{
                                 type="url"
                                 value={formData.affiliateLink}
                                 onChange={(e) => setFormData(prev => ({ ...prev, affiliateLink: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
                                 required
                             />
                         </div>
@@ -582,7 +581,7 @@ const EditPostModal: React.FC<{
                                 type="text"
                                 value={formData.affiliateLinkText}
                                 onChange={(e) => setFormData(prev => ({ ...prev, affiliateLinkText: e.target.value }))}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500"
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
                                 placeholder="Buy on Amazon"
                                 required
                             />
@@ -617,7 +616,7 @@ const EditPostModal: React.FC<{
                                         type="text"
                                         value={pro}
                                         onChange={(e) => updatePro(index, e.target.value)}
-                                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500"
+                                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
                                         placeholder={`Pro ${index + 1}`}
                                     />
                                     <button
@@ -651,7 +650,7 @@ const EditPostModal: React.FC<{
                                         type="text"
                                         value={con}
                                         onChange={(e) => updateCon(index, e.target.value)}
-                                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500"
+                                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
                                         placeholder={`Con ${index + 1}`}
                                     />
                                     <button
@@ -683,7 +682,7 @@ const EditPostModal: React.FC<{
                         <textarea
                             value={redditReviewsInput}
                             onChange={e => setRedditReviewsInput(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 font-mono"
+                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772] font-mono"
                             rows={8}
                             placeholder={`[
   {
@@ -712,7 +711,7 @@ const EditPostModal: React.FC<{
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-6 py-3 bg-[#FF5F1F] text-white rounded-lg hover:bg-lime-500 disabled:opacity-50 font-medium"
+                            className="flex-1 px-6 py-3 bg-[#FF5F1F] text-white rounded-lg hover:bg-[#f59772] disabled:opacity-50 font-medium"
                             disabled={isLoading}
                         >
                             {isLoading ? 'Updating...' : 'Update Post'}

@@ -12,7 +12,7 @@ const ProductsGrid: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState<'newest' | 'score' | 'title'>('newest');
-    
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const postsPerPage = 15;
@@ -22,11 +22,11 @@ const ProductsGrid: React.FC = () => {
         try {
             setLoading(true);
             const response = await fetch('/api/auth/post');
-            
+
             if (!response.ok) {
                 throw new Error('Failed to fetch posts');
             }
-            
+
             const data = await response.json();
             setPosts(data);
         } catch (err) {
@@ -42,7 +42,7 @@ const ProductsGrid: React.FC = () => {
 
     // Filter and sort posts
     const filteredAndSortedPosts = posts
-        .filter(post => 
+        .filter(post =>
             post.productTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
             post.productDescription.toLowerCase().includes(searchTerm.toLowerCase())
         )
@@ -131,7 +131,7 @@ const ProductsGrid: React.FC = () => {
         const handleLike = async (e: React.MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
-            
+
             if (isLiking) return;
 
             setIsLiking(true);
@@ -159,7 +159,7 @@ const ProductsGrid: React.FC = () => {
 
         return (
             <Link href={`/products/${product._id}`} className="block">
-                <div className="bg-gray-900 rounded-xl p-6 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-lime-400/50 group cursor-pointer">
+                <div className="bg-gray-900 rounded-xl p-6 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-[#FF5F1F]/50 group cursor-pointer">
                     {/* Product Image */}
                     <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-800">
                         {product.productPhotos && product.productPhotos.length > 0 && !imageError ? (
@@ -181,34 +181,34 @@ const ProductsGrid: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        
+
                         {/* Score Badge */}
-                        <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                        {/* <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm px-2 py-1 rounded-full">
                             <div className="flex items-center px-2 gap-1">
                                 <span className='text-white'>Product Score: </span>
-                                <Star className="w-3 h-3 fill-lime-400 text-lime-400" />
-                                <span className="text-lime-400 text-sm font-semibold">{product.productScore}</span>
+                                <Star className="w-3 h-3 fill-[#FF5F1F] text-[#FF5F1F]" />
+                                <span className="text-[#FF5F1F] text-sm font-semibold">{product.productScore}</span>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Like Button */}
-                        <button
+                        {/* <button
                             onClick={handleLike}
                             disabled={isLiking}
-                            className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm p-2 rounded-full hover:bg-lime-400/20 transition-colors z-10 disabled:opacity-50"
+                            className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm p-2 rounded-full hover:bg-[#FF5F1F]/20 transition-colors z-10 disabled:opacity-50"
                         >
                             <Heart 
                                 className={`w-4 h-4 transition-colors ${
-                                    liked ? 'fill-lime-400 text-lime-400' : 'text-gray-400'
+                                    liked ? 'fill-[#FF5F1F] text-[#FF5F1F]' : 'text-gray-400'
                                 } ${isLiking ? 'animate-pulse' : ''}`} 
                             />
-                        </button>
+                        </button> */}
                     </div>
 
                     {/* Product Info */}
                     <div className="space-y-3">
                         {/* Title */}
-                        <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-lime-400 transition-colors">
+                        <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-[#FF5F1F] transition-colors">
                             {product.productTitle}
                         </h3>
 
@@ -219,7 +219,7 @@ const ProductsGrid: React.FC = () => {
 
                         {/* Price and Meta */}
                         <div className="flex items-center justify-between">
-                            <span className="text-2xl font-bold text-lime-400">
+                            <span className="text-2xl font-bold text-[#FF5F1F]">
                                 {product.productPrice}
                             </span>
                             <div className="flex items-center gap-3 text-gray-500 text-xs">
@@ -232,7 +232,7 @@ const ProductsGrid: React.FC = () => {
                                 <div className="flex items-center gap-1">
                                     {/* <Clock className="w-3 h-3" /> */}
                                     <span>
-                                        {product.createdAt 
+                                        {product.createdAt
                                             ? new Date(product.createdAt).toLocaleDateString()
                                             : 'Unknown'
                                         }
@@ -270,7 +270,7 @@ const ProductsGrid: React.FC = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={handleAffiliateLinkClick}
-                                className="w-full bg-lime-400 text-black py-2 px-4 rounded-lg font-semibold hover:bg-lime-500 transition-colors flex items-center justify-center gap-2 group"
+                                className="w-full bg-[#FF5F1F] text-black py-2 px-4 rounded-lg font-semibold hover:bg-[#f59772] transition-colors flex items-center justify-center gap-2 group"
                             >
                                 <span>{product.affiliateLinkText || 'View Product'}</span>
                                 <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -284,17 +284,17 @@ const ProductsGrid: React.FC = () => {
 
     if (loading) {
         return (
-         <div className="bg-black min-h-screen">
-            <div className="min-h-screen bg-black">
-                <div className="max-w-7xl mx-auto p-6">
-                    <div className="h-16 bg-gray-900 rounded-lg mb-8 animate-pulse"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {[...Array(8)].map((_, index) => (
-                            <ProductCardSkeleton key={index} />
-                        ))}
+            <div className="bg-black min-h-screen">
+                <div className="min-h-screen bg-black">
+                    <div className="max-w-7xl mx-auto p-6">
+                        <div className="h-16 bg-gray-900 rounded-lg mb-8 animate-pulse"></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {[...Array(8)].map((_, index) => (
+                                <ProductCardSkeleton key={index} />
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         );
     }
@@ -302,154 +302,153 @@ const ProductsGrid: React.FC = () => {
     if (error) {
         return (
             <div className="bg-black min-h-screen">
-             <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-6xl mb-4">😢</div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h2>
-                    <p className="text-gray-400 mb-6">Error: {error}</p>
-                    <button 
-                        onClick={fetchPosts}
-                        className="bg-lime-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-lime-500 transition-colors"
-                    >
-                        Try Again
-                    </button>
+                <div className="min-h-screen bg-black flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="text-6xl mb-4">😢</div>
+                        <h2 className="text-2xl font-bold text-white mb-2">Oops! Something went wrong</h2>
+                        <p className="text-gray-400 mb-6">Error: {error}</p>
+                        <button
+                            onClick={fetchPosts}
+                            className="bg-[#f59772] text-black px-6 py-3 rounded-lg font-semibold hover:bg-[#f59772] transition-colors"
+                        >
+                            Try Again
+                        </button>
+                    </div>
                 </div>
-            </div>
             </div>
         );
     }
 
     return (
         <div className="bg-black min-h-screen">
-          <div className="min-h-screen bg-black">
-            <div className="max-w-7xl mx-auto p-6">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-                        <div>
-                            <h1 className="text-4xl font-bold text-white mb-2">
-                                Product <span className="text-lime-400">Showcase</span>
-                            </h1>
-                            <p className="text-gray-400">
-                                Discover amazing products curated just for you
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-lime-400 text-2xl font-bold">{filteredAndSortedPosts.length}</p>
-                            <p className="text-gray-400 text-sm">Products Available</p>
-                        </div>
-                    </div>
-
-                    {/* Search and Filter */}
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1">
-                            <input
-                                type="text"
-                                placeholder="Search products..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent"
-                            />
-                        </div>
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value as 'newest' | 'score' | 'title')}
-                            className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent"
-                        >
-                            <option value="newest">Newest First</option>
-                            <option value="score">Highest Score</option>
-                            <option value="title">Alphabetical</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Products Grid */}
-                {filteredAndSortedPosts.length === 0 ? (
-                    <div className="text-center py-16">
-                        <div className="text-6xl mb-4">🔍</div>
-                        <h2 className="text-2xl font-bold text-white mb-2">No Products Found</h2>
-                        <p className="text-gray-400 mb-6">
-                            {searchTerm 
-                                ? `No products match "${searchTerm}". Try a different search term.`
-                                : 'No products available at the moment.'
-                            }
-                        </p>
-                        {searchTerm && (
-                            <button 
-                                onClick={() => setSearchTerm('')}
-                                className="bg-lime-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-lime-500 transition-colors"
-                            >
-                                Clear Search
-                            </button>
-                        )}
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {currentPosts.map((product) => (
-                                <ProductCard key={product._id?.toString()} product={product} />
-                            ))}
-                        </div>
-
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center space-x-2 mt-8">
-                                <button
-                                    onClick={goToPreviousPage}
-                                    disabled={currentPage === 1}
-                                    className="px-3 py-2 bg-black text-lime-400 border border-lime-400 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-lime-400 hover:text-black transition-colors"
-                                >
-                                    Previous
-                                </button>
-                                
-                                {/* Page Numbers */}
-                                <div className="flex space-x-1">
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        let pageNumber;
-                                        if (totalPages <= 5) {
-                                            pageNumber = i + 1;
-                                        } else if (currentPage <= 3) {
-                                            pageNumber = i + 1;
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNumber = totalPages - 4 + i;
-                                        } else {
-                                            pageNumber = currentPage - 2 + i;
-                                        }
-                                        
-                                        return (
-                                            <button
-                                                key={pageNumber}
-                                                onClick={() => goToPage(pageNumber)}
-                                                className={`px-3 py-2 border rounded-md transition-colors ${
-                                                    currentPage === pageNumber
-                                                        ? 'bg-lime-400 text-black border-lime-400'
-                                                        : 'bg-black text-lime-400 border-lime-400 hover:bg-lime-400 hover:text-black'
-                                                }`}
-                                            >
-                                                {pageNumber}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                
-                                <button
-                                    onClick={goToNextPage}
-                                    disabled={currentPage === totalPages}
-                                    className="px-3 py-2 bg-black text-lime-400 border border-lime-400 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-lime-400 hover:text-black transition-colors"
-                                >
-                                    Next
-                                </button>
+            <div className="min-h-screen bg-black">
+                <div className="max-w-7xl mx-auto p-6">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                            <div>
+                                <h1 className="text-4xl font-bold text-white mb-2">
+                                    Product <span className="text-[#FF5F1F]">Showcase</span>
+                                </h1>
+                                <p className="text-gray-400">
+                                    Discover amazing products curated just for you
+                                </p>
                             </div>
-                        )}
-
-                        {/* Results Summary */}
-                        <div className="text-center mt-4 text-gray-400">
-                            Showing {startIndex + 1}-{Math.min(endIndex, filteredAndSortedPosts.length)} of {filteredAndSortedPosts.length} products
+                            <div className="text-right">
+                                <p className="text-[#FF5F1F] text-2xl font-bold">{filteredAndSortedPosts.length}</p>
+                                <p className="text-gray-400 text-sm">Products Available</p>
+                            </div>
                         </div>
-                    </>
-                )}
+
+                        {/* Search and Filter */}
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex-1">
+                                <input
+                                    type="text"
+                                    placeholder="Search products..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF5F1F] focus:border-transparent"
+                                />
+                            </div>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as 'newest' | 'score' | 'title')}
+                                className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[#FF5F1F] focus:border-transparent"
+                            >
+                                <option value="newest">Newest First</option>
+                                <option value="score">Highest Score</option>
+                                <option value="title">Alphabetical</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Products Grid */}
+                    {filteredAndSortedPosts.length === 0 ? (
+                        <div className="text-center py-16">
+                            <div className="text-6xl mb-4">🔍</div>
+                            <h2 className="text-2xl font-bold text-white mb-2">No Products Found</h2>
+                            <p className="text-gray-400 mb-6">
+                                {searchTerm
+                                    ? `No products match "${searchTerm}". Try a different search term.`
+                                    : 'No products available at the moment.'
+                                }
+                            </p>
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="bg-[#FF5F1F] text-black px-6 py-3 rounded-lg font-semibold hover:bg-[#f59772] transition-colors"
+                                >
+                                    Clear Search
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {currentPosts.map((product) => (
+                                    <ProductCard key={product._id?.toString()} product={product} />
+                                ))}
+                            </div>
+
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <div className="flex justify-center items-center space-x-2 mt-8">
+                                    <button
+                                        onClick={goToPreviousPage}
+                                        disabled={currentPage === 1}
+                                        className="px-3 py-2 bg-black text-[#FF5F1F] border border-[#FF5F1F] rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f9926a] hover:text-black transition-colors"
+                                    >
+                                        Previous
+                                    </button>
+
+                                    {/* Page Numbers */}
+                                    <div className="flex space-x-1">
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            let pageNumber;
+                                            if (totalPages <= 5) {
+                                                pageNumber = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNumber = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNumber = totalPages - 4 + i;
+                                            } else {
+                                                pageNumber = currentPage - 2 + i;
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={pageNumber}
+                                                    onClick={() => goToPage(pageNumber)}
+                                                    className={`px-3 py-2 border rounded-md transition-colors ${currentPage === pageNumber
+                                                        ? 'bg-[#FF5F1F] text-black border-[#FF5F1F]'
+                                                        : 'bg-black text-[#FF5F1F] border-[#FF5F1F] hover:bg-[#FF5F1F] hover:text-black'
+                                                        }`}
+                                                >
+                                                    {pageNumber}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <button
+                                        onClick={goToNextPage}
+                                        disabled={currentPage === totalPages}
+                                        className="px-3 py-2 bg-black text-[#FF5F1F] border border-[#FF5F1F] rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f9926a] hover:text-black transition-colors"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Results Summary */}
+                            <div className="text-center mt-4 text-gray-400">
+                                Showing {startIndex + 1}-{Math.min(endIndex, filteredAndSortedPosts.length)} of {filteredAndSortedPosts.length} products
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
-        </div>
         </div>
     );
 };

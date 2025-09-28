@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, X, Star, MessageSquare, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import FileUpload from "@/app/components/FileUpload";
@@ -26,6 +26,14 @@ interface ProductFormData {
     productScore: number;
     category: string;
     productRank?: number;
+}
+
+interface Category {
+    _id: string;
+    name: string;
+    image: UploadResponse;
+    createdAt: string;
+    updatedAt: string;
 }
 
 interface ValidationErrors {
@@ -66,10 +74,14 @@ const ProductPostForm: React.FC = () => {
 
     // For the textarea input
     const [redditReviewsInput, setRedditReviewsInput] = useState('');
-
+    const [error, setError] = useState<string | null>(null);
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<{ [key: number]: number }>({});
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
+
+
 
     const handleInputChange = <K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -80,40 +92,31 @@ const ProductPostForm: React.FC = () => {
         }
     };
 
-    const productCategories = [
-        "Action Cameras",
-        "Air Fryers",
-        "Air Purifiers",
-        "Camping Tents",
-        "Dash Cams",
-        "Drip Coffee Makers",
-        "Drones",
-        "Electric Coffee Grinders",
-        "Electric Scooters",
-        "Fitness Trackers",
-        "Gaming Headsets",
-        "Gaming Keyboards",
-        "Gaming Mice",
-        "Home Projectors",
-        "IEMs",
-        "Mesh Wifi Systems",
-        "Outdoor Sleeping Bags",
-        "Portable Air Conditioners",
-        "Portable Bluetooth Speakers",
-        "Portable Monitors",
-        "Robot Vacuums",
-        "Sleeping Pads",
-        "Smart Doorbells",
-        "Soundbars",
-        "Trail Running Shoes",
-        "Travel Car Seats",
-        "Travel Strollers",
-        "Ultrawide Monitors",
-        "Vacuum Cleaners",
-        "Webcams",
-        "WiFi Routers",
-        "Wireless Earbuds"
-    ];
+    // Fetch categories
+    const fetchCategories = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/categories');
+            const result = await response.json();
+            console.log('Fetched categories:', result.data);
+
+            if (result.success) {
+                setCategories(result.data);
+            } else {
+                setError(result.error || 'Failed to fetch categories');
+            }
+        } catch (error) {
+            setError('Error fetching categories');
+            console.error('Error fetching categories:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Load categories on component mount
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     const handleImageUploadSuccess = (index: number, response: UploadResponse) => {
         setFormData(prev => {
@@ -324,8 +327,8 @@ const ProductPostForm: React.FC = () => {
                     affiliateLinkText: '',
                     pros: [''],
                     cons: [''],
-                        redditReviews: [],
-                        category: '',
+                    redditReviews: [],
+                    category: '',
                     productScore: 50,
                     productRank: undefined,
                 });
@@ -394,11 +397,11 @@ const ProductPostForm: React.FC = () => {
                     <select
                         value={formData.category}
                         onChange={e => handleInputChange('category', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.category ? 'border-red-500' : 'border-gray-300'}`}
                     >
                         <option value="">Select a category</option>
-                        {productCategories.map(cat => (
-                            <option key={cat} value={cat}>{cat}</option>
+                        {categories.map(cat => (
+                            <option key={cat._id} value={cat.name}>{cat.name}</option>
                         ))}
                     </select>
                     <ErrorMessage error={errors.category} />
@@ -412,7 +415,7 @@ const ProductPostForm: React.FC = () => {
                         type="text"
                         value={formData.productTitle}
                         onChange={(e) => handleInputChange('productTitle', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${errors.productTitle ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.productTitle ? 'border-red-500' : 'border-gray-300'
                             }`}
                         placeholder="Enter product title"
                     />
@@ -428,7 +431,7 @@ const ProductPostForm: React.FC = () => {
                         rows={4}
                         value={formData.productDescription}
                         onChange={(e) => handleInputChange('productDescription', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${errors.productDescription ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.productDescription ? 'border-red-500' : 'border-gray-300'
                             }`}
                         placeholder="Describe the product in detail"
                     />
@@ -470,7 +473,7 @@ const ProductPostForm: React.FC = () => {
                                             <div className="mt-2">
                                                 <div className="bg-gray-200 rounded-full h-2">
                                                     <div
-                                                        className="bg-lime-400 h-2 rounded-full transition-all"
+                                                        className="bg-[#FF5F1F] h-2 rounded-full transition-all"
                                                         style={{ width: `${uploadProgress[index]}%` }}
                                                     ></div>
                                                 </div>
@@ -494,7 +497,7 @@ const ProductPostForm: React.FC = () => {
                         type="text"
                         value={formData.productPrice}
                         onChange={(e) => handleInputChange('productPrice', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${errors.productPrice ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.productPrice ? 'border-red-500' : 'border-gray-300'
                             }`}
                         placeholder="$99.99"
                     />
@@ -511,7 +514,7 @@ const ProductPostForm: React.FC = () => {
                             type="url"
                             value={formData.affiliateLink}
                             onChange={(e) => handleInputChange('affiliateLink', e.target.value)}
-                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${errors.affiliateLink ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.affiliateLink ? 'border-red-500' : 'border-gray-300'
                                 }`}
                             placeholder="https://example.com/affiliate-link"
                         />
@@ -525,7 +528,7 @@ const ProductPostForm: React.FC = () => {
                             type="text"
                             value={formData.affiliateLinkText}
                             onChange={(e) => handleInputChange('affiliateLinkText', e.target.value)}
-                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all ${errors.affiliateLinkText ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.affiliateLinkText ? 'border-red-500' : 'border-gray-300'
                                 }`}
                             placeholder="Buy on Amazon"
                         />
@@ -544,7 +547,7 @@ const ProductPostForm: React.FC = () => {
                                 type="text"
                                 value={pro}
                                 onChange={(e) => updatePro(index, e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all"
                                 placeholder={`Pro ${index + 1}`}
                             />
                             <button
@@ -579,7 +582,7 @@ const ProductPostForm: React.FC = () => {
                                 type="text"
                                 value={con}
                                 onChange={(e) => updateCon(index, e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all"
                                 placeholder={`Con ${index + 1}`}
                             />
                             <button
@@ -612,7 +615,7 @@ const ProductPostForm: React.FC = () => {
                     <textarea
                         value={redditReviewsInput}
                         onChange={e => setRedditReviewsInput(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all"
                         placeholder={`Paste JSON array of reviews here.\nExample:\n[\n  {\n    \"comment\": \"Great product!\",\n    \"tag\": \"positive\",\n    \"link\": \"https://reddit.com/...\",\n    \"author\": \"user123\",\n    \"subreddit\": \"subredditname\"\n  }\n]`}
                         rows={8}
                     />
@@ -663,7 +666,7 @@ const ProductPostForm: React.FC = () => {
                         type="button"
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="w-full bg-lime-400 text-white py-4 px-6 rounded-lg font-semibold hover:bg-lime-500 focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        className="w-full bg-[#FF5F1F] text-white py-4 px-6 rounded-lg font-semibold hover:bg-[#f59772] focus:ring-2 focus:ring-[#f59772] focus:ring-offset-2 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                         {isSubmitting ? 'Creating Post...' : 'Create Product Post'}
                     </button>

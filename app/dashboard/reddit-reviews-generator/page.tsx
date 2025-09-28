@@ -75,7 +75,7 @@ export default function RedditReviewsGenerator() {
 
   // Update message
   const updateMessage = (id: string, updates: Partial<ChatMessage>) => {
-    setMessages(prev => prev.map(msg => 
+    setMessages(prev => prev.map(msg =>
       msg.id === id ? { ...msg, ...updates } : msg
     ));
   };
@@ -121,7 +121,7 @@ export default function RedditReviewsGenerator() {
       }
 
       const data = await response.json();
-      
+
       // Update loading message with results
       updateMessage(loadingId, {
         content: `✅ Generated ${data.comments.length} reviews for "${productTitle}"`,
@@ -143,7 +143,7 @@ export default function RedditReviewsGenerator() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const words = value.trim().split(/\s+/);
-    
+
     if (words.length <= 5) {
       setProductTitle(value);
     }
@@ -355,7 +355,7 @@ export default function RedditReviewsGenerator() {
             <Button
               onClick={generateReviews}
               disabled={loading || !validateTitle(productTitle)}
-              className="min-h-[44px] px-4 bg-lime-400 text-black cursor-pointer hover:bg-lime-500 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors"
+              className="min-h-[44px] px-4 bg-[#FF5F1F] text-black cursor-pointer hover:bg-[#f59772] disabled:bg-gray-300 disabled:cursor-not-allowed rounded-lg transition-colors"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -42,40 +42,6 @@ const redditReviewSchema = new Schema({
     subreddit: { type: String, required: true }
 }, { _id: false });
 
-const productCategories = [
-    "Action Cameras",
-    "Air Fryers",
-    "Air Purifiers",
-    "Camping Tents",
-    "Dash Cams",
-    "Drip Coffee Makers",
-    "Drones",
-    "Electric Coffee Grinders",
-    "Electric Scooters",
-    "Fitness Trackers",
-    "Gaming Headsets",
-    "Gaming Keyboards",
-    "Gaming Mice",
-    "Home Projectors",
-    "IEMs",
-    "Mesh Wifi Systems",
-    "Outdoor Sleeping Bags",
-    "Portable Air Conditioners",
-    "Portable Bluetooth Speakers",
-    "Portable Monitors",
-    "Robot Vacuums",
-    "Sleeping Pads",
-    "Smart Doorbells",
-    "Soundbars",
-    "Trail Running Shoes",
-    "Travel Car Seats",
-    "Travel Strollers",
-    "Ultrawide Monitors",
-    "Vacuum Cleaners",
-    "Webcams",
-    "WiFi Routers",
-    "Wireless Earbuds"
-];
 
 const productSchema = new Schema({
     productRank: {
@@ -87,45 +53,44 @@ const productSchema = new Schema({
     category: {
         type: String,
         required: true,
-        enum: productCategories
     },
-    productTitle: { 
-        type: String, 
-        required: true, 
-        minlength: 3, 
-        maxlength: 100 
+    productTitle: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 100
     },
-    productDescription: { 
-        type: String, 
-        required: true, 
-        minlength: 10, 
-        maxlength: 2000 
+    productDescription: {
+        type: String,
+        required: true,
+        minlength: 10,
+        maxlength: 2000
     },
-    productPhotos: { 
-        type: [String], 
+    productPhotos: {
+        type: [String],
         default: [],
         validate: {
-            validator: function(arr: string[]) {
+            validator: function (arr: string[]) {
                 return arr.length <= 5;
             },
             message: 'Maximum 5 photos allowed'
         }
     },
-    productPrice: { 
-        type: String, 
+    productPrice: {
+        type: String,
         required: true,
         validate: {
-            validator: function(price: string) {
+            validator: function (price: string) {
                 return /^\$?\d+(\.\d{2})?$/.test(price.trim());
             },
             message: 'Invalid price format'
         }
     },
-    affiliateLink: { 
-        type: String, 
+    affiliateLink: {
+        type: String,
         required: true,
         validate: {
-            validator: function(url: string) {
+            validator: function (url: string) {
                 try {
                     new URL(url);
                     return true;
@@ -136,39 +101,39 @@ const productSchema = new Schema({
             message: 'Invalid URL format'
         }
     },
-    affiliateLinkText: { 
-        type: String, 
-        required: true, 
-        maxlength: 50 
+    affiliateLinkText: {
+        type: String,
+        required: true,
+        maxlength: 50
     },
-    pros: { 
-        type: [String], 
+    pros: {
+        type: [String],
         required: true,
         validate: {
-            validator: function(arr: string[]) {
+            validator: function (arr: string[]) {
                 return arr.length > 0 && arr.some(pro => pro.trim().length > 0);
             },
             message: 'At least one pro is required'
         }
     },
-    cons: { 
-        type: [String], 
+    cons: {
+        type: [String],
         required: true,
         validate: {
-            validator: function(arr: string[]) {
+            validator: function (arr: string[]) {
                 return arr.length > 0 && arr.some(con => con.trim().length > 0);
             },
             message: 'At least one con is required'
         }
     },
-    redditReviews: { 
-        type: [redditReviewSchema], 
+    redditReviews: {
+        type: [redditReviewSchema],
         default: []
     },
-    productScore: { 
-        type: Number, 
-        required: true, 
-        min: 0, 
+    productScore: {
+        type: Number,
+        required: true,
+        min: 0,
         max: 100,
         default: 50
     },

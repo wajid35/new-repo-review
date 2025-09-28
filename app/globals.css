@@ -47,7 +47,7 @@
   --radius: 0.625rem;
 
   /* Base light mode */
-  --background: oklch(18.791% 0.00162 16.574);         /* white */
+  --background: black;         /* white */
   --foreground: oklch(0.145 0 0);     /* near black */
 
   --card: oklch(1 0 0);
@@ -56,7 +56,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
 
-  /* ✅ Primary = lime-400 */
+  /* ✅ Primary = [#FF5F1F] */
   --primary: oklch(0.85 0.176 128.7);
   --primary-foreground: oklch(0.145 0 0); /* dark text for contrast */
 
@@ -84,7 +84,7 @@
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
 
-  /* ✅ Sidebar primary = lime-400 */
+  /* ✅ Sidebar primary = [#FF5F1F] */
   --sidebar-primary: oklch(0.85 0.176 128.7);
   --sidebar-primary-foreground: oklch(0.145 0 0);
 
@@ -106,7 +106,7 @@
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
 
-  /* ✅ Primary = lime-400 (works in dark) */
+  /* ✅ Primary = [#FF5F1F] (works in dark) */
   --primary: oklch(0.85 0.176 128.7);
   --primary-foreground: oklch(0.145 0 0);
 
@@ -134,7 +134,7 @@
   --sidebar: oklch(0.145 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
 
-  /* ✅ Sidebar primary = lime-400 */
+  /* ✅ Sidebar primary = [#FF5F1F] */
   --sidebar-primary: oklch(0.85 0.176 128.7);
   --sidebar-primary-foreground: oklch(0.145 0 0);
 

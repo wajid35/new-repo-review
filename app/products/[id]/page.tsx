@@ -118,11 +118,11 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
     const negativePercentage = Math.round((negativeCount / totalReviews) * 100);
     const neutralPercentage = Math.round((neutralCount / totalReviews) * 100);
 
-    const ProgressBar: React.FC<{ 
-        label: string; 
-        count: number; 
-        percentage: number; 
-        color: string; 
+    const ProgressBar: React.FC<{
+        label: string;
+        count: number;
+        percentage: number;
+        color: string;
         bgColor: string;
         icon: string;
     }> = ({ label, count, percentage, color, bgColor, icon }) => (
@@ -138,7 +138,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
             </div>
             <div className="relative">
                 <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
-                    <div 
+                    <div
                         className={`h-full ${bgColor} transition-all duration-500 ease-out relative`}
                         style={{ width: `${percentage}%` }}
                     >
@@ -157,7 +157,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
                     Based on {totalReviews} Reddit review{totalReviews !== 1 ? 's' : ''}
                 </span>
             </div>
-            
+
             <div className="space-y-4">
                 <ProgressBar
                     label="Positive"
@@ -167,7 +167,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
                     bgColor="bg-green-900/30"
                     icon="👍"
                 />
-                
+
                 <ProgressBar
                     label="Negative"
                     count={negativeCount}
@@ -176,7 +176,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
                     bgColor="bg-red-900/30"
                     icon="👎"
                 />
-                
+
                 <ProgressBar
                     label="Neutral"
                     count={neutralCount}
@@ -191,18 +191,17 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
             <div className="mt-6 pt-4 border-t border-gray-700">
                 <div className="text-center">
                     <span className="text-gray-300 text-sm">Overall Sentiment: </span>
-                    <span className={`font-semibold ${
-                        positiveCount > negativeCount + neutralCount 
-                            ? 'text-green-400' 
-                            : negativeCount > positiveCount + neutralCount 
-                            ? 'text-red-400' 
+                    <span className={`font-semibold ${positiveCount > negativeCount + neutralCount
+                        ? 'text-green-400'
+                        : negativeCount > positiveCount + neutralCount
+                            ? 'text-red-400'
                             : 'text-gray-400'
-                    }`}>
-                        {positiveCount > negativeCount + neutralCount 
-                            ? 'Mostly Positive' 
-                            : negativeCount > positiveCount + neutralCount 
-                            ? 'Mostly Negative' 
-                            : 'Mixed Reviews'
+                        }`}>
+                        {positiveCount > negativeCount + neutralCount
+                            ? 'Mostly Positive'
+                            : negativeCount > positiveCount + neutralCount
+                                ? 'Mostly Negative'
+                                : 'Mixed Reviews'
                         }
                     </span>
                 </div>
@@ -224,8 +223,8 @@ const ProductDetailPage: React.FC = () => {
     const [isLiking, setIsLiking] = useState(false);
 
     useEffect(() => {
-  console.log('Product data is: ->->->  ', product);
-}, [product]);
+        console.log('Product data is: ->->->  ', product);
+    }, [product]);
 
     useEffect(() => {
         const fetchProductData = async () => {
@@ -233,15 +232,15 @@ const ProductDetailPage: React.FC = () => {
                 try {
                     setLoading(true);
                     const response = await fetch(`/api/auth/post/${params.id}`);
-                    
+
                     if (!response.ok) {
                         throw new Error('Product not found');
                     }
-                    
+
                     const data = await response.json();
                     setProduct(data);
-                    console.log('Product data is: ->->->  ',product)
-                    
+                    console.log('Product data is: ->->->  ', product)
+
                     // Check like status for both authenticated and anonymous users
                     try {
                         const likeResponse = await fetch(`/api/auth/post/${params.id}/like`);
@@ -317,7 +316,7 @@ const ProductDetailPage: React.FC = () => {
                         <div className="w-10 h-10 bg-gray-800 rounded-lg animate-pulse"></div>
                         <div className="w-32 h-6 bg-gray-800 rounded animate-pulse"></div>
                     </div>
-                    
+
                     {/* Content Skeleton */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="space-y-4">
@@ -350,7 +349,7 @@ const ProductDetailPage: React.FC = () => {
                     <div className="text-6xl mb-4">😞</div>
                     <h2 className="text-2xl font-bold text-white mb-2">Product Not Found</h2>
                     <p className="text-gray-400 mb-6">{error || 'The product you\'re looking for doesn\'t exist.'}</p>
-                    <button 
+                    <button
                         onClick={() => router.push('/products')}
                         className="bg-[#FF5F1F] text-black px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F] transition-colors"
                     >
@@ -373,23 +372,22 @@ const ProductDetailPage: React.FC = () => {
                         <ArrowLeft className="w-5 h-5" />
                         <span>Back</span>
                     </button>
-                    
+
                     <div className="flex items-center gap-3">
                         <button
                             onClick={handleShare}
-                            className="flex items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                            className="flex cursor-pointer items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
                         >
                             <Share2 className="w-4 h-4" />
                             <span>Share</span>
                         </button>
                         <button
                             onClick={handleLike}
-                            className="flex items-center gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                            className="flex items-center cursor-pointer gap-2 bg-gray-800 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
                         >
-                            <Heart 
-                                className={`w-4 h-4 transition-colors ${
-                                    liked ? 'fill-[#FF5F1F] text-[#FF5F1F]' : 'text-gray-400'
-                                }`} 
+                            <Heart
+                                className={`w-4 h-4 transition-colors ${liked ? 'fill-[#FF5F1F] text-[#FF5F1F]' : 'text-gray-400'
+                                    }`}
                             />
                             <span>{liked ? 'Liked' : 'Like'}</span>
                         </button>
@@ -422,15 +420,15 @@ const ProductDetailPage: React.FC = () => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 {/* Score Badge */}
-                                <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-full">
+                                {/* { <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-full">
                                     <div className="flex items-center gap-2">
                                                                                 <span className='text-white'>Product Score: </span>
                                         <Star className="w-4 h-4 fill-[#FF5F1F] text-[#FF5F1F]" />
                                         <span className="text-[#FF5F1F] font-semibold">{product.productScore}</span>
                                     </div>
-                                </div>
+                                </div>} */}
                             </div>
 
                             {/* Thumbnail Images */}
@@ -440,11 +438,10 @@ const ProductDetailPage: React.FC = () => {
                                         <button
                                             key={index}
                                             onClick={() => setCurrentImageIndex(index)}
-                                            className={`relative w-20 h-20 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border-2 transition-colors ${
-                                                currentImageIndex === index 
-                                                    ? 'border-[#FF5F1F]' 
-                                                    : 'border-gray-700 hover:border-gray-600'
-                                            }`}
+                                            className={`relative w-20 h-20 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border-2 transition-colors ${currentImageIndex === index
+                                                ? 'border-[#FF5F1F]'
+                                                : 'border-gray-700 hover:border-gray-600'
+                                                }`}
                                         >
                                             <Image
                                                 src={photo}
@@ -477,14 +474,14 @@ const ProductDetailPage: React.FC = () => {
                                     <div className="flex items-center gap-1">
                                         <span className='font-bold'>Posted On: </span>
                                         <span>
-                                            {product.createdAt 
+                                            {product.createdAt
                                                 ? new Date(product.createdAt).toLocaleDateString()
                                                 : 'Unknown date'
                                             }
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 {/* Like Button and Count */}
                                 <div className="flex items-center gap-3">
                                     <div className="flex items-center gap-2 text-gray-400 text-sm">
@@ -515,7 +512,7 @@ const ProductDetailPage: React.FC = () => {
                                     {product.productDescription}
                                 </p>
                             </div>
-                            
+
                             {/* Buy Button */}
                             <div className="pt-4">
                                 <a
@@ -532,15 +529,15 @@ const ProductDetailPage: React.FC = () => {
                         </div>
                     </div>
 
- {/* Review Progress Bars */}
-                {product.redditReviews && product.redditReviews.length > 0 && (
-                    <div className="mt-12 mb-8">
-                        <div className="max-w-4xl mx-auto">
-                            <h3 className="text-xl font-semibold text-white mb-6 text-center">Review Summary</h3>
-                            <ReviewProgressBars reviews={product.redditReviews} />
+                    {/* Review Progress Bars */}
+                    {product.redditReviews && product.redditReviews.length > 0 && (
+                        <div className="mt-12 mb-8">
+                            <div className="max-w-4xl mx-auto">
+                                <h3 className="text-xl font-semibold text-white mb-6 text-center">Review Summary</h3>
+                                <ReviewProgressBars reviews={product.redditReviews} />
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
                     {/* Second Row: Pros and Cons */}
                     {(product.pros?.length > 0 || product.cons?.length > 0) && (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -579,7 +576,7 @@ const ProductDetailPage: React.FC = () => {
                     )}
                 </div>
 
-               
+
 
                 {/* Reddit Reviews - Full Width Below */}
                 {product.redditReviews && product.redditReviews.length > 0 && (

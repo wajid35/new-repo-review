@@ -1,58 +1,93 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
-const categories = [
-  "Action Cameras",
-  "Air Fryers",
-  "Air Purifiers",
-  "Camping Tents",
-  "Dash Cams",
-  "Drip Coffee Makers",
-  "Drones",
-  "Electric Coffee Grinders",
-  "Electric Scooters",
-  "Fitness Trackers",
-  "Gaming Headsets",
-  "Gaming Keyboards",
-  "Gaming Mice",
-  "Home Projectors",
-  "IEMs (In-Ear Monitors)",
-  "Mesh WiFi Systems",
-  "Outdoor Sleeping Bags",
-  "Portable Air Conditioners",
-  "Portable Bluetooth Speakers",
-  "Portable Monitors",
-  "Robot Vacuums",
-  "Sleeping Pads",
-  "Smart Doorbells",
-  "Soundbars",
-  "Trail Running Shoes",
-  "Travel Car Seats",
-  "Travel Strollers",
-  "Ultrawide Monitors",
-  "Vacuum Cleaners",
-  "Webcams",
-  "WiFi Routers",
-  "Wireless Earbuds"
-];
+interface Category {
+  _id: string;
+  name: string;
+  image: UploadResponse;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface UploadResponse {
+  url: string;
+  fileId: string;
+  name: string;
+}
 
 const CategoriesGrid: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const params = useParams();
   const rawCategory = params?.name as string || "";
   const categoryName = rawCategory.replace(/-/g, " ");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
+  // Fetch categories
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/categories');
+      const result = await response.json();
+
+      if (result.success) {
+        setCategories(result.data);
+      } else {
+        setError(result.error || 'Failed to fetch categories');
+      }
+    } catch (error) {
+      setError('Error fetching categories');
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  // Filter categories based on search term (now using the Category object properly)
   const filteredCategories = categories.filter(cat =>
-    cat.toLowerCase().includes(searchTerm.toLowerCase())
+    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Now use categoryName to filter your products/categories array
-  const filtered = categories.filter(
-    (p) => p.toLowerCase() === categoryName.toLowerCase()
-  );
+  if (loading) {
+    return (
+      <div className="bg-black min-h-screen">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-white text-xl">Loading categories...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-black min-h-screen">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Error Loading Categories</h2>
+            <p className="text-gray-400 mb-6">{error}</p>
+            <button
+              onClick={fetchCategories}
+              className="bg-[#FF5F1F] text-black px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F]/90 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-black min-h-screen">
@@ -95,15 +130,32 @@ const CategoriesGrid: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredCategories.map((cat, idx) => (
+            {filteredCategories.map((category) => (
               <Link
-                key={cat}
-                href={`/categories/${cat.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}
-                className="bg-gray-900 rounded-xl p-6 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-[#FF5F1F]/50 cursor-pointer block"
+                key={category._id}
+                href={`/categories/${category.name.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}
+                className="bg-gray-900 rounded-xl overflow-hidden hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 border border-gray-800 hover:border-[#FF5F1F]/50 cursor-pointer block group"
               >
-                <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-[#FF5F1F] transition-colors">
-                  {cat}
-                </h3>
+                {/* Category Image */}
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={category.image.url}
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    onError={(e) => {
+                      // Fallback for broken images
+                      e.currentTarget.src = '/api/placeholder/300/200';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
+                </div>
+
+                {/* Category Info */}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white line-clamp-2 group-hover:text-[#FF5F1F] transition-colors">
+                    {category.name}
+                  </h3>
+                </div>
               </Link>
             ))}
           </div>

@@ -70,7 +70,7 @@ const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
                 <div className="flex justify-center mt-4">
                     <button
                         onClick={() => setShowFullText(!showFullText)}
-                        className="flex items-center gap-1 text-lime-600 hover:text-lime-500 text-sm font-medium"
+                        className="flex items-center gap-1 text-lime-600 hover:text-[#f59772] text-sm font-medium"
                     >
                         {showFullText ? (
                             <>
@@ -114,11 +114,11 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
     const negativePercentage = Math.round((negativeCount / totalReviews) * 100);
     const neutralPercentage = Math.round((neutralCount / totalReviews) * 100);
 
-    const ProgressBar: React.FC<{ 
-        label: string; 
-        count: number; 
-        percentage: number; 
-        color: string; 
+    const ProgressBar: React.FC<{
+        label: string;
+        count: number;
+        percentage: number;
+        color: string;
         bgColor: string;
         icon: string;
     }> = ({ label, count, percentage, color, bgColor, icon }) => (
@@ -134,7 +134,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
             </div>
             <div className="relative">
                 <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                    <div 
+                    <div
                         className={`h-full ${bgColor} transition-all duration-500 ease-out relative`}
                         style={{ width: `${percentage}%` }}
                     >
@@ -152,7 +152,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
                     Based on {totalReviews} Reddit review{totalReviews !== 1 ? 's' : ''}
                 </span>
             </div>
-            
+
             <div className="space-y-4">
                 <ProgressBar label="Positive" count={positiveCount} percentage={positivePercentage} color="bg-green-500" bgColor="bg-green-200" icon="👍" />
                 <ProgressBar label="Negative" count={negativeCount} percentage={negativePercentage} color="bg-red-500" bgColor="bg-red-200" icon="👎" />
@@ -162,18 +162,17 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
             <div className="mt-6 pt-4 border-t border-gray-300">
                 <div className="text-center">
                     <span className="text-gray-700 text-sm">Overall Sentiment: </span>
-                    <span className={`font-semibold ${
-                        positiveCount > negativeCount + neutralCount 
-                            ? 'text-green-600' 
-                            : negativeCount > positiveCount + neutralCount 
-                            ? 'text-red-600' 
-                            : 'text-gray-600'
-                    }`}>
-                        {positiveCount > negativeCount + neutralCount 
-                            ? 'Mostly Positive' 
-                            : negativeCount > positiveCount + neutralCount 
-                            ? 'Mostly Negative' 
-                            : 'Mixed Reviews'
+                    <span className={`font-semibold ${positiveCount > negativeCount + neutralCount
+                            ? 'text-green-600'
+                            : negativeCount > positiveCount + neutralCount
+                                ? 'text-red-600'
+                                : 'text-gray-600'
+                        }`}>
+                        {positiveCount > negativeCount + neutralCount
+                            ? 'Mostly Positive'
+                            : negativeCount > positiveCount + neutralCount
+                                ? 'Mostly Negative'
+                                : 'Mixed Reviews'
                         }
                     </span>
                 </div>
@@ -197,11 +196,11 @@ const ProductDetailPage: React.FC = () => {
                 try {
                     setLoading(true);
                     const response = await fetch(`/api/auth/post/${params.id}`);
-                    
+
                     if (!response.ok) {
                         throw new Error('Product not found');
                     }
-                    
+
                     const data = await response.json();
                     setProduct(data);
                 } catch (err) {
@@ -243,9 +242,9 @@ const ProductDetailPage: React.FC = () => {
                     <div className="text-6xl mb-4">😞</div>
                     <h2 className="text-2xl font-bold mb-2">Product Not Found</h2>
                     <p className="text-gray-600 mb-6">{error || 'The product you\'re looking for doesn\'t exist.'}</p>
-                    <button 
+                    <button
                         onClick={() => router.push('/products')}
-                        className="bg-lime-500 text-black px-6 py-3 rounded-lg font-semibold hover:bg-lime-600"
+                        className="bg-[#f59772] text-black px-6 py-3 rounded-lg font-semibold hover:bg-lime-600"
                     >
                         Back to Products
                     </button>
@@ -301,11 +300,11 @@ const ProductDetailPage: React.FC = () => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="absolute top-4 left-4 bg-white/80 px-3 py-2 rounded-full">
                                     <div className="flex items-center gap-2">
                                         <span>Product Score:</span>
-                                        <Star className="w-4 h-4 fill-lime-500 text-lime-500" />
+                                        <Star className="w-4 h-4 fill-[#f59772] text-[#f59772]" />
                                         <span className="text-lime-600 font-semibold">{product.productScore}</span>
                                     </div>
                                 </div>
@@ -317,11 +316,10 @@ const ProductDetailPage: React.FC = () => {
                                         <button
                                             key={index}
                                             onClick={() => setCurrentImageIndex(index)}
-                                            className={`relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0 border-2 transition-colors ${
-                                                currentImageIndex === index 
-                                                    ? 'border-lime-500' 
+                                            className={`relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0 border-2 transition-colors ${currentImageIndex === index
+                                                    ? 'border-[#f59772]'
                                                     : 'border-gray-300 hover:border-gray-400'
-                                            }`}
+                                                }`}
                                         >
                                             <Image
                                                 src={photo}
@@ -348,7 +346,7 @@ const ProductDetailPage: React.FC = () => {
                                 <div className="flex items-center gap-1">
                                     <span className="font-bold">Posted On: </span>
                                     <span>
-                                        {product.createdAt 
+                                        {product.createdAt
                                             ? new Date(product.createdAt).toLocaleDateString()
                                             : 'Unknown date'
                                         }
@@ -362,13 +360,13 @@ const ProductDetailPage: React.FC = () => {
                                     {product.productDescription}
                                 </p>
                             </div>
-                            
+
                             <div className="pt-4">
                                 <a
                                     href={product.affiliateLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full bg-lime-500 text-black py-4 px-6 rounded-xl font-bold text-lg hover:bg-lime-600 flex items-center justify-center gap-3"
+                                    className="w-full bg-[#f59772] text-black py-4 px-6 rounded-xl font-bold text-lg hover:bg-lime-600 flex items-center justify-center gap-3"
                                 >
                                     <ShoppingCart className="w-5 h-5" />
                                     <span>{product.affiliateLinkText || 'Buy Now'}</span>
