@@ -1,6 +1,11 @@
 // lib/models/Category.ts
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IFAQ {
+    question: string;
+    answer: string;
+}
+
 export interface ICategory extends Document {
     name: string;
     image: {
@@ -8,9 +13,23 @@ export interface ICategory extends Document {
         fileId: string;
         name: string;
     };
+    faqs: IFAQ[];
     createdAt: Date;
     updatedAt: Date;
 }
+
+const FAQSchema: Schema = new Schema({
+    question: {
+        type: String,
+        required: [true, 'FAQ question is required'],
+        trim: true
+    },
+    answer: {
+        type: String,
+        required: [true, 'FAQ answer is required'],
+        trim: true
+    }
+}, { _id: false });
 
 const CategorySchema: Schema = new Schema({
     name: {
@@ -33,6 +52,10 @@ const CategorySchema: Schema = new Schema({
             type: String,
             required: [true, 'File name is required']
         }
+    },
+    faqs: {
+        type: [FAQSchema],
+        default: []
     }
 }, {
     timestamps: true

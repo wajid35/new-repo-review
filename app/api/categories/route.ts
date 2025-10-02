@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     try {
         await connectToDatabase();
         const body = await request.json();
-        const { name, image } = body;
+        const { name, image, faqs } = body;
 
         // Validation
         if (!name || !image || !image.url || !image.fileId || !image.name) {
@@ -34,6 +34,24 @@ export async function POST(request: NextRequest) {
                 { success: false, error: 'Name and complete image data are required' },
                 { status: 400 }
             );
+        }
+
+        // Validate FAQs if provided
+        if (faqs && Array.isArray(faqs)) {
+            for (const faq of faqs) {
+                if (!faq.question || !faq.answer) {
+                    return NextResponse.json(
+                        { success: false, error: 'Each FAQ must have both question and answer' },
+                        { status: 400 }
+                    );
+                }
+                if (faq.question.trim() === '' || faq.answer.trim() === '') {
+                    return NextResponse.json(
+                        { success: false, error: 'FAQ question and answer cannot be empty' },
+                        { status: 400 }
+                    );
+                }
+            }
         }
 
         // Check if category with same name already exists
@@ -45,15 +63,35 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const category = new Category({
+        // Prepare category data
+        interface CategoryData {
+            name: string;
+            image: {
+                url: string;
+                fileId: string;
+                name: string;
+            };
+            faqs?: { question: string; answer: string }[];
+        }
+
+        const categoryData: CategoryData = {
             name: name.trim(),
             image: {
                 url: image.url,
                 fileId: image.fileId,
                 name: image.name
             }
-        });
+        };
 
+        // Add FAQs if provided (will be empty array if not provided due to schema default)
+        if (faqs && Array.isArray(faqs) && faqs.length > 0) {
+            categoryData.faqs = faqs.map((faq: { question: string; answer: string }) => ({
+                question: faq.question.trim(),
+                answer: faq.answer.trim()
+            }));
+        }
+
+        const category = new Category(categoryData);
         await category.save();
 
         return NextResponse.json({

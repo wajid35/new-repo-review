@@ -60,7 +60,7 @@ export async function PUT(
             );
         }
 
-        const { name, image } = body;
+        const { name, image, faqs } = body;
 
         // Validation
         if (!name || !image || !image.url || !image.fileId || !image.name) {
@@ -68,6 +68,24 @@ export async function PUT(
                 { success: false, error: 'Name and complete image data are required' },
                 { status: 400 }
             );
+        }
+
+        // Validate FAQs if provided
+        if (faqs && Array.isArray(faqs)) {
+            for (const faq of faqs) {
+                if (!faq.question || !faq.answer) {
+                    return NextResponse.json(
+                        { success: false, error: 'Each FAQ must have both question and answer' },
+                        { status: 400 }
+                    );
+                }
+                if (faq.question.trim() === '' || faq.answer.trim() === '') {
+                    return NextResponse.json(
+                        { success: false, error: 'FAQ question and answer cannot be empty' },
+                        { status: 400 }
+                    );
+                }
+            }
         }
 
         // Check if another category with the same name exists (excluding current category)
@@ -83,16 +101,39 @@ export async function PUT(
             );
         }
 
+        // Prepare update data
+        interface UpdateData {
+            name: string;
+            image: {
+                url: string;
+                fileId: string;
+                name: string;
+            };
+            faqs?: { question: string; answer: string }[];
+        }
+
+        const updateData: UpdateData = {
+            name: name.trim(),
+            image: {
+                url: image.url,
+                fileId: image.fileId,
+                name: image.name
+            }
+        };
+
+        // Add FAQs to update data (will be empty array if not provided)
+        if (faqs && Array.isArray(faqs)) {
+            updateData.faqs = faqs.map((faq: { question: string; answer: string }) => ({
+                question: faq.question.trim(),
+                answer: faq.answer.trim()
+            }));
+        } else {
+            updateData.faqs = [];
+        }
+
         const updatedCategory = await Category.findByIdAndUpdate(
             id,
-            {
-                name: name.trim(),
-                image: {
-                    url: image.url,
-                    fileId: image.fileId,
-                    name: image.name
-                }
-            },
+            updateData,
             { new: true, runValidators: true }
         );
 

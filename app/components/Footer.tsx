@@ -32,7 +32,7 @@ const Footer = () => {
             </svg>
             <span className="text-[#FF5F1F] font-semibold text-lg">Reddit Reviews</span>
           </div>
-          <p className="text-sm">
+          <p className="text-sm text-black/70">
             A library created with <span className="text-[#FF5F1F]">♥</span> by{" "}
             <Link
               href="https://github.com/developerzohaib786"
@@ -45,7 +45,7 @@ const Footer = () => {
         </div>
 
         {/* Right section nav */}
-        <div className="flex flex-wrap justify-center md:justify-end gap-6 text-sm">
+        <div className="flex flex-wrap justify-center md:justify-end text-black gap-6 text-sm">
           <Link href="/products" className="hover:text-[#e34f14] transition-colors">All Products</Link>
           <Link href="/categories" className="hover:text-[#e34f14] transition-colors">Ranked Categories</Link>
           <Link href="/faqs" className="hover:text-[#e34f14] transition-colors">FAQs</Link>

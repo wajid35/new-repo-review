@@ -34,19 +34,19 @@ export function LoginForm({
 
     }
     return (
-        <div className={cn("flex flex-col gap-6 bg-black min-h-screen p-4", className)} {...props}>
-            <Card className="overflow-hidden p-0 bg-neutral-900 border-neutral-700">
+        <div className={cn("flex flex-col gap-6 bg-white min-h-screen p-4", className)} {...props}>
+            <Card className="overflow-hidden p-0 bg-white-900 border-neutral-700">
                 <CardContent className="grid p-0 md:grid-cols-2">
-                    <form onSubmit={hanldeSubmit} className="p-6 md:p-8 bg-black">
+                    <form onSubmit={hanldeSubmit} className="p-6 md:p-8 bg-white">
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col items-center text-center">
-                                <h1 className="text-2xl font-bold text-white">Admin Login</h1>
-                                <p className="text-gray-300 text-balance">
+                                <h1 className="text-2xl font-bold text-black">Admin Login</h1>
+                                <p className="text-black text-balance">
                                     Login to Admin Panel
                                 </p>
                             </div>
                             <div className="grid gap-3">
-                                <Label htmlFor="email" className="text-white">Email</Label>
+                                <Label htmlFor="email" className="text-black">Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -54,12 +54,12 @@ export function LoginForm({
                                     value={email}
                                     onChange={(e) => setemail(e.target.value)}
                                     required
-                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-[#FF5F1F] focus:border-[#FF5F1F]"
+                                    className="bg-white border-neutral-600 text-black placeholder-black focus:ring-[#FF5F1F] focus:border-[#FF5F1F]"
                                 />
                             </div>
                             <div className="grid gap-3">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password" className="text-white">Password</Label>
+                                    <Label htmlFor="password" className="text-black">Password</Label>
                                     {/* <a
                                         href="#"
                                         className="ml-auto text-sm underline-offset-2 hover:underline"
@@ -73,10 +73,10 @@ export function LoginForm({
                                     onChange={(e) => setpassword(e.target.value)}
                                     type="password"
                                     required
-                                    className="bg-neutral-800 border-neutral-600 text-white placeholder-gray-400 focus:ring-[#FF5F1F] focus:border-[#FF5F1F]"
+                                    className="bg-white border-neutral-600 text-black placeholder-black focus:ring-[#FF5F1F] focus:border-[#FF5F1F]"
                                 />
                             </div>
-                            <Button type="submit" className="w-full bg-[#FF5F1F] text-black hover:bg-[#f59772] font-medium">
+                            <Button type="submit" className="w-full cursor-pointer bg-[#FF5F1F] text-white hover:bg-[#f59772] font-medium">
                                 Login
                             </Button>
                             {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -121,7 +121,7 @@ export function LoginForm({
                             </div> */}
                         </div>
                     </form>
-                    <div className="bg-neutral-800 relative hidden md:block">
+                    <div className="bg-black relative hidden md:block">
                         <img
                             src={LoginImg.src}
                             alt="Login Background Image"

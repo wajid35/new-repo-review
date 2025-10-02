@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit, Plus, X } from 'lucide-react';
+import { Textarea } from "@/components/ui/textarea";
+import { Trash2, Edit, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
 import FileUpload from "@/app/components/FileUpload";
 import Image from 'next/image';
 
@@ -17,10 +18,17 @@ interface UploadResponse {
     name: string;
 }
 
+interface FAQ {
+    question: string;
+    answer: string;
+    id?: string;
+}
+
 interface Category {
     _id: string;
     name: string;
     image: UploadResponse;
+    faqs: FAQ[];
     createdAt: string;
     updatedAt: string;
 }
@@ -32,11 +40,13 @@ export default function CategoriesPage() {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [formData, setFormData] = useState({
         name: '',
-        image: null as UploadResponse | null
+        image: null as UploadResponse | null,
+        faqs: [] as FAQ[]
     });
     const [submitLoading, setSubmitLoading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
     // Fetch categories
     const fetchCategories = async () => {
@@ -89,14 +99,15 @@ export default function CategoriesPage() {
                 },
                 body: JSON.stringify({
                     name: formData.name.trim(),
-                    image: formData.image
+                    image: formData.image,
+                    faqs: formData.faqs
                 }),
             });
 
             const result = await response.json();
 
             if (result.success) {
-                await fetchCategories(); // Refresh the list
+                await fetchCategories();
                 resetForm();
                 setIsDialogOpen(false);
             } else {
@@ -124,7 +135,7 @@ export default function CategoriesPage() {
             const result = await response.json();
 
             if (result.success) {
-                await fetchCategories(); // Refresh the list
+                await fetchCategories();
             } else {
                 setError(result.error || 'Failed to delete category');
             }
@@ -139,7 +150,8 @@ export default function CategoriesPage() {
         setEditingCategory(category);
         setFormData({
             name: category.name,
-            image: category.image
+            image: category.image,
+            faqs: category.faqs || []
         });
         setIsDialogOpen(true);
     };
@@ -153,9 +165,46 @@ export default function CategoriesPage() {
         setUploadProgress(0);
     };
 
+    // FAQ Management Functions
+    const addFAQ = () => {
+        setFormData(prev => ({
+            ...prev,
+            faqs: [...prev.faqs, { question: '', answer: '', id: Date.now().toString() }]
+        }));
+    };
+
+    const removeFAQ = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            faqs: prev.faqs.filter((_, i) => i !== index)
+        }));
+    };
+
+    const updateFAQ = (index: number, field: 'question' | 'answer', value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            faqs: prev.faqs.map((faq, i) => 
+                i === index ? { ...faq, [field]: value } : faq
+            )
+        }));
+    };
+
+    // Toggle category expansion
+    const toggleCategory = (categoryId: string) => {
+        setExpandedCategories(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(categoryId)) {
+                newSet.delete(categoryId);
+            } else {
+                newSet.add(categoryId);
+            }
+            return newSet;
+        });
+    };
+
     // Reset form
     const resetForm = () => {
-        setFormData({ name: '', image: null });
+        setFormData({ name: '', image: null, faqs: [] });
         setEditingCategory(null);
         setError(null);
         setUploadProgress(0);
@@ -188,7 +237,7 @@ export default function CategoriesPage() {
                         </Button>
                     </DialogTrigger>
 
-                    <DialogContent className="sm:max-w-[425px] bg-white">
+                    <DialogContent className="sm:max-w-[600px] bg-white max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>
                                 {editingCategory ? 'Edit Category' : 'Add New Category'}
@@ -253,7 +302,60 @@ export default function CategoriesPage() {
                                 )}
                             </div>
 
-                            <div className="flex justify-end space-x-2">
+                            {/* FAQs Section */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>FAQs (Optional)</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="cursor-pointer"
+                                        onClick={addFAQ}
+                                    >
+                                        <Plus className="mr-1 h-3 w-3" />
+                                        Add FAQ
+                                    </Button>
+                                </div>
+
+                                {formData.faqs.length > 0 && (
+                                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                                        {formData.faqs.map((faq, index) => (
+                                            <div key={faq.id || index} className="border rounded-lg p-3 space-y-2">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-sm font-medium">FAQ {index + 1}</span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="cursor-pointer h-6 w-6 p-0"
+                                                        onClick={() => removeFAQ(index)}
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+
+                                                <Input
+                                                    placeholder="Question"
+                                                    value={faq.question}
+                                                    onChange={(e) => updateFAQ(index, 'question', e.target.value)}
+                                                    required
+                                                />
+
+                                                <Textarea
+                                                    placeholder="Answer"
+                                                    value={faq.answer}
+                                                    onChange={(e) => updateFAQ(index, 'answer', e.target.value)}
+                                                    rows={3}
+                                                    required
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex justify-end space-x-2 pt-4">
                                 <Button type="button" variant="outline" className="bg-white cursor-pointer" onClick={handleDialogClose}>
                                     Cancel
                                 </Button>
@@ -298,9 +400,42 @@ export default function CategoriesPage() {
 
                         <CardHeader>
                             <CardTitle className="text-lg">{category.name}</CardTitle>
+                            {category.faqs && category.faqs.length > 0 && (
+                                <p className="text-sm text-gray-500">{category.faqs.length} FAQ{category.faqs.length !== 1 ? 's' : ''}</p>
+                            )}
                         </CardHeader>
 
-                        <CardContent className="pt-0">
+                        <CardContent className="pt-0 space-y-3">
+                            {/* FAQs Preview */}
+                            {category.faqs && category.faqs.length > 0 && (
+                                <div className="mb-3">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full justify-between cursor-pointer"
+                                        onClick={() => toggleCategory(category._id)}
+                                    >
+                                        View FAQs
+                                        {expandedCategories.has(category._id) ? (
+                                            <ChevronUp className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4" />
+                                        )}
+                                    </Button>
+
+                                    {expandedCategories.has(category._id) && (
+                                        <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
+                                            {category.faqs.map((faq, index) => (
+                                                <div key={index} className="text-sm bg-gray-50 p-2 rounded">
+                                                    <p className="font-medium">{faq.question}</p>
+                                                    <p className="text-gray-600 mt-1">{faq.answer}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="flex justify-between">
                                 <Button
                                     variant="outline"
@@ -339,5 +474,4 @@ export default function CategoriesPage() {
             )}
         </div>
     );
-
 }

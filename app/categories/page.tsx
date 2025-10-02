@@ -36,6 +36,7 @@ const CategoriesGrid: React.FC = () => {
 
       if (result.success) {
         setCategories(result.data);
+        console.log('Fetched categories:', result.data);
       } else {
         setError(result.error || 'Failed to fetch categories');
       }

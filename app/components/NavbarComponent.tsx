@@ -9,6 +9,7 @@ const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'About Us', href: '/aboutus' },
   { label: 'FAQs', href: '/faq' },
+  { label: 'Top Ranked List', href: '/categories-list' },
 ]
 
 export default function Navbar() {
@@ -49,7 +50,7 @@ export default function Navbar() {
               </Link>
 
               {/* Middle: Nav Links */}
-              <nav className="hidden lg:flex gap-6 font-medium text-[#FF5F1F]">
+              <nav className="hidden lg:flex gap-6 font-medium text-black">
                 {navLinks.map((i) => (
                   <a href={i.href} key={i.label} className="hover:text-[#ff7847] transition-colors">
                     {i.label}
