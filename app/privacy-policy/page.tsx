@@ -97,19 +97,19 @@ export default function PrivacyPolicy() {
     return (
         <>
             <Navbar />
-            <div className="min-h-screen bg-black">
+            <div className="min-h-screen bg-white">
                 {/* Header */}
-                <div className="bg-gradient-to-b from-gray-900 to-black border-b border-gray-800">
+                <div className="bg-gradient-to-b from-white to-white border-b border-[#FF5F1F]/30">
                     <div className="max-w-4xl mx-auto px-6 py-16">
                         <div className="flex items-center justify-center mb-6">
                             <div className="bg-[#FF5F1F]/10 p-4 rounded-full">
                                 <Shield className="w-12 h-12 text-[#FF5F1F]" />
                             </div>
                         </div>
-                        <h1 className="text-5xl font-bold text-white text-center mb-4">
+                        <h1 className="text-5xl font-bold text-black text-center mb-4">
                             Privacy <span className="text-[#FF5F1F]">Policy</span>
                         </h1>
-                        <p className="text-gray-400 text-center text-lg">
+                        <p className="text-gray-700 text-center text-lg">
                             Your privacy is important to us. Learn how we collect, use, and protect your information.
                         </p>
                         <p className="text-gray-500 text-center text-sm mt-4">
@@ -121,8 +121,8 @@ export default function PrivacyPolicy() {
                 {/* Content */}
                 <div className="max-w-4xl mx-auto px-6 py-12">
                     {/* Introduction */}
-                    <div className="mb-12 p-6 bg-gray-900 rounded-xl border border-gray-800">
-                        <p className="text-gray-300 leading-relaxed">
+                    <div className="mb-12 p-6 bg-[#FF5F1F]/5 rounded-xl border border-[#FF5F1F]/30">
+                        <p className="text-gray-800 leading-relaxed">
                             This Privacy Policy describes how we collect, use, disclose, and protect your information when you use our website and services. By accessing or using our services, you agree to the terms of this Privacy Policy.
                         </p>
                     </div>
@@ -132,7 +132,7 @@ export default function PrivacyPolicy() {
                         {sections.map((section, index) => (
                             <div
                                 key={index}
-                                className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-[#FF5F1F]/30 transition-all duration-300"
+                                className="bg-white rounded-xl border border-[#FF5F1F]/30 overflow-hidden hover:border-[#FF5F1F] transition-all duration-300"
                             >
                                 <div className="p-6">
                                     <div className="flex items-start gap-4 mb-4">
@@ -140,7 +140,7 @@ export default function PrivacyPolicy() {
                                             {section.icon}
                                         </div>
                                         <div className="flex-1">
-                                            <h2 className="text-2xl font-bold text-white mb-4">
+                                            <h2 className="text-2xl font-bold text-black mb-4">
                                                 {section.title}
                                             </h2>
                                             <div className="space-y-4">
@@ -151,7 +151,7 @@ export default function PrivacyPolicy() {
                                                                 {item.subtitle}
                                                             </h3>
                                                         )}
-                                                        <p className="text-gray-300 leading-relaxed">
+                                                        <p className="text-gray-800 leading-relaxed">
                                                             {item.text}
                                                         </p>
                                                     </div>
@@ -165,22 +165,22 @@ export default function PrivacyPolicy() {
                     </div>
 
                     {/* Policy Updates */}
-                    <div className="mt-12 p-6 bg-gradient-to-r from-[#FF5F1F]/10 to-transparent rounded-xl border border-[#FF5F1F]/20">
-                        <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
+                    <div className="mt-12 p-6 bg-gradient-to-r from-[#FF5F1F]/10 to-transparent rounded-xl border border-[#FF5F1F]/30">
+                        <h2 className="text-xl font-bold text-black mb-3 flex items-center gap-2">
                             <AlertCircle className="w-5 h-5 text-[#FF5F1F]" />
                             Changes to This Policy
                         </h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <p className="text-gray-800 leading-relaxed">
                             We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last Updated&quot; date. We encourage you to review this Privacy Policy periodically for any changes.
                         </p>
                     </div>
 
                     {/* Footer CTA */}
                     <div className="mt-12 text-center">
-                        <p className="text-gray-400 mb-6">
+                        <p className="text-gray-700 mb-6">
                             Have questions about our privacy practices?
                         </p>
-                        <button className="bg-[#FF5F1F] text-black px-8 py-3 rounded-lg font-semibold hover:bg-[#f59772] transition-colors inline-flex items-center gap-2">
+                        <button className="bg-[#FF5F1F] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#e85618] transition-colors inline-flex items-center gap-2">
                             <Mail className="w-5 h-5" />
                             Contact Us
                         </button>

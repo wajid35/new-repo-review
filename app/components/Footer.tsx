@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="w-full border-t border-white/10 bg-black text-gray-400">
+    <footer className="w-full border-t border-[#FF5F1F]/30 bg-white text-[#FF5F1F]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center py-8 px-6 gap-4">
 
         {/* Left section */}
@@ -30,11 +30,15 @@ const Footer = () => {
               <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
               <line x1={12} y1={22.08} x2={12} y2={12} />
             </svg>
-            <span className="text-white font-semibold text-lg">Reddit Reviews</span>
+            <span className="text-[#FF5F1F] font-semibold text-lg">Reddit Reviews</span>
           </div>
           <p className="text-sm">
             A library created with <span className="text-[#FF5F1F]">♥</span> by{" "}
-            <Link href="https://github.com/developerzohaib786" target="_blank" className="text-[#FF5F1F] hover:underline">
+            <Link
+              href="https://github.com/developerzohaib786"
+              target="_blank"
+              className="text-[#FF5F1F] hover:underline"
+            >
               developerzohaib
             </Link>
           </p>
@@ -42,15 +46,15 @@ const Footer = () => {
 
         {/* Right section nav */}
         <div className="flex flex-wrap justify-center md:justify-end gap-6 text-sm">
-          <Link href="/products" className="hover:text-[#FF5F1F] transition-colors">All Products</Link>
-          <Link href="/categories" className="hover:text-[#FF5F1F] transition-colors">Ranked Categories</Link>
-          <Link href="/faqs" className="hover:text-[#FF5F1F] transition-colors">FAQs</Link>
-          <Link href="/privacy-policy" className="hover:text-[#FF5F1F] transition-colors">Privacy Policy</Link>
+          <Link href="/products" className="hover:text-[#e34f14] transition-colors">All Products</Link>
+          <Link href="/categories" className="hover:text-[#e34f14] transition-colors">Ranked Categories</Link>
+          <Link href="/faqs" className="hover:text-[#e34f14] transition-colors">FAQs</Link>
+          <Link href="/privacy-policy" className="hover:text-[#e34f14] transition-colors">Privacy Policy</Link>
         </div>
       </div>
 
       {/* Bottom copyright */}
-      <div className=" text-center py-4 text-sm text-gray-500">
+      <div className="text-center py-4 text-sm text-[#FF5F1F]/80">
         © {new Date().getFullYear()} Reddit Reviews. All rights reserved.
       </div>
     </footer>
