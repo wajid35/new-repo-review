@@ -50,6 +50,7 @@ const Footer = () => {
           <Link href="/categories" className="hover:text-[#e34f14] transition-colors">Ranked Categories</Link>
           <Link href="/faqs" className="hover:text-[#e34f14] transition-colors">FAQs</Link>
           <Link href="/privacy-policy" className="hover:text-[#e34f14] transition-colors">Privacy Policy</Link>
+          <Link href="/login" className="hover:text-[#e34f14] transition-colors">Admin</Link>
         </div>
       </div>
 

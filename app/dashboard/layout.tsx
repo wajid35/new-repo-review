@@ -5,7 +5,7 @@
     return (
       <SidebarProvider>
         <AppSidebar />
-        <main className="flex-1 flex flex-col items-center w-full !bg-white">
+        <main className="flex-1 flex flex-col items-center w-full text-black !bg-white">
           <div className="w-full max-w-none flex flex-col">
             <SidebarTrigger />
             <div className="flex-1 flex justify-center">
