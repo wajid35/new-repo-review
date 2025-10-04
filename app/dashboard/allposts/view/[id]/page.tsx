@@ -376,39 +376,6 @@ const ProductDetailPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {(product.pros?.length > 0 || product.cons?.length > 0) && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                            {product.pros?.length > 0 && (
-                                <div className="bg-green-100 border border-green-300 rounded-xl p-6">
-                                    <h4 className="text-green-700 font-semibold mb-4 flex items-center gap-2 text-xl">
-                                        ✅ Pros
-                                    </h4>
-                                    <ul className="space-y-3">
-                                        {product.pros.map((pro, index) => (
-                                            <li key={index} className="text-green-700 text-sm break-words whitespace-pre-wrap">
-                                                • {pro}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {product.cons?.length > 0 && (
-                                <div className="bg-red-100 border border-red-300 rounded-xl p-6">
-                                    <h4 className="text-red-700 font-semibold mb-4 flex items-center gap-2 text-xl">
-                                        ❌ Cons
-                                    </h4>
-                                    <ul className="space-y-3">
-                                        {product.cons.map((con, index) => (
-                                            <li key={index} className="text-red-700 text-sm break-words whitespace-pre-wrap">
-                                                • {con}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
 
                 {product.redditReviews && product.redditReviews.length > 0 && (
