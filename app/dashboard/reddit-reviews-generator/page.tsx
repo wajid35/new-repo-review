@@ -331,9 +331,9 @@ export default function RedditReviewsGenerator() {
       </div>
 
       {/* Fixed Input Area */}
-      <div className="fixed bottom-0 left-10 right-0 flex justify-center items-center p-4 z-10 bg-gradient-to-t from-gray-50 to-transparent">
+      <div className="fixed bottom-0  z-9999 left-10 right-0 flex justify-center items-center p-4">
         <div className="flex justify-center items-center w-full">
-          <div className="flex items-center space-x-3" style={{ width: '1024px' }}>
+          <div className="flex items-center bg-white space-x-3" style={{ width: '1024px' }}>
             <div className="flex-1">
               <Input
                 type="text"
@@ -348,7 +348,7 @@ export default function RedditReviewsGenerator() {
                   justifyContent: 'center',
                   alignItems: 'center'
                 }}
-                className="min-h-[44px] px-4 py-3 text-sm border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="min-h-[44px] bg-white px-4 py-3 text-sm border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={loading}
               />
             </div>

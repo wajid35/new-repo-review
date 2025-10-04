@@ -45,9 +45,8 @@ const Footer = () => {
         </div>
 
         {/* Right section nav */}
-        <div className="flex flex-wrap justify-center md:justify-end text-black gap-6 text-sm">
-          <Link href="/products" className="hover:text-[#e34f14] transition-colors">All Products</Link>
-          <Link href="/categories" className="hover:text-[#e34f14] transition-colors">Ranked Categories</Link>
+        <div className="flex flex-wrap justify-center md:justify-end text-black gap-6 text-[16px]">
+          <Link href="/pipeline" className="hover:text-[#e34f14] transition-colors">Pipeline</Link>
           <Link href="/faqs" className="hover:text-[#e34f14] transition-colors">FAQs</Link>
           <Link href="/privacy-policy" className="hover:text-[#e34f14] transition-colors">Privacy Policy</Link>
           <Link href="/login" className="hover:text-[#e34f14] transition-colors">Admin</Link>

@@ -20,8 +20,6 @@ interface ProductFormData {
     productPrice: string;
     affiliateLink: string;
     affiliateLinkText: string;
-    pros: string[];
-    cons: string[];
     redditReviews: RedditReview[];
     productScore: number;
 }
@@ -33,8 +31,6 @@ interface ValidationErrors {
     productPrice?: string;
     affiliateLink?: string;
     affiliateLinkText?: string;
-    pros?: string;
-    cons?: string;
     redditReviews?: string;
     productScore?: string;
 }
@@ -57,8 +53,6 @@ const UpdateProductPostForm: React.FC = () => {
         productPrice: '',
         affiliateLink: '',
         affiliateLinkText: '',
-        pros: [''],
-        cons: [''],
         redditReviews: Array(10).fill(null).map(() => ({
             review: '',
             visitLink: '',
@@ -89,17 +83,13 @@ const UpdateProductPostForm: React.FC = () => {
                         productPrice: currentPost.productPrice,
                         affiliateLink: currentPost.affiliateLink,
                         affiliateLinkText: currentPost.affiliateLinkText,
-                        pros: currentPost.pros.length > 0 ? currentPost.pros : [''],
-                        cons: currentPost.cons.length > 0 ? currentPost.cons : [''],
                         redditReviews: currentPost.redditReviews.length > 0 
                             ? [
-                                // Map model IRedditReview to local RedditReview shape
                                 ...currentPost.redditReviews.map(r => ({
                                     review: r.comment,
                                     visitLink: r.link,
                                     tag: r.tag as 'positive' | 'negative' | 'neutral'
                                 })),
-                                // Fill to 10
                                 ...Array(Math.max(0, 10 - currentPost.redditReviews.length)).fill(null).map(() => ({
                                     review: '',
                                     visitLink: '',
@@ -159,52 +149,6 @@ const UpdateProductPostForm: React.FC = () => {
         });
     };
 
-    const addPro = () => {
-        setFormData(prev => ({
-            ...prev,
-            pros: [...prev.pros, '']
-        }));
-    };
-
-    const removePro = (index: number) => {
-        if (formData.pros.length > 1) {
-            setFormData(prev => ({
-                ...prev,
-                pros: prev.pros.filter((_, i) => i !== index)
-            }));
-        }
-    };
-
-    const updatePro = (index: number, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            pros: prev.pros.map((pro, i) => i === index ? value : pro)
-        }));
-    };
-
-    const addCon = () => {
-        setFormData(prev => ({
-            ...prev,
-            cons: [...prev.cons, '']
-        }));
-    };
-
-    const removeCon = (index: number) => {
-        if (formData.cons.length > 1) {
-            setFormData(prev => ({
-                ...prev,
-                cons: prev.cons.filter((_, i) => i !== index)
-            }));
-        }
-    };
-
-    const updateCon = (index: number, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            cons: prev.cons.map((con, i) => i === index ? value : con)
-        }));
-    };
-
     const updateRedditReview = (index: number, field: keyof RedditReview, value: string) => {
         setFormData(prev => ({
             ...prev,
@@ -260,18 +204,6 @@ const UpdateProductPostForm: React.FC = () => {
             newErrors.affiliateLinkText = 'Affiliate link text must be less than 50 characters';
         }
 
-        // Pros validation
-        const validPros = formData.pros.filter(pro => pro.trim().length > 0);
-        if (validPros.length === 0) {
-            newErrors.pros = 'At least one pro is required';
-        }
-
-        // Cons validation
-        const validCons = formData.cons.filter(con => con.trim().length > 0);
-        if (validCons.length === 0) {
-            newErrors.cons = 'At least one con is required';
-        }
-
         // Reddit Reviews validation
         const validReviews = formData.redditReviews.filter(review =>
             review.review.trim().length > 0 || review.visitLink.trim().length > 0
@@ -309,8 +241,6 @@ const UpdateProductPostForm: React.FC = () => {
             const cleanedData = {
                 ...formData,
                 productPhotos: formData.productPhotos.filter(photo => photo.trim() !== ''),
-                pros: formData.pros.filter(pro => pro.trim() !== ''),
-                cons: formData.cons.filter(con => con.trim() !== ''),
                 redditReviews: formData.redditReviews.filter(review =>
                     review.review.trim() !== '' || review.visitLink.trim() !== ''
                 )
@@ -435,7 +365,7 @@ const UpdateProductPostForm: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => removePhoto(index)}
-                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors cursor-pointer"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
@@ -514,76 +444,6 @@ const UpdateProductPostForm: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Pros */}
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Pros *
-                    </label>
-                    {formData.pros.map((pro, index) => (
-                        <div key={index} className="flex items-center gap-2 mb-2">
-                            <input
-                                type="text"
-                                value={pro}
-                                onChange={(e) => updatePro(index, e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder={`Pro ${index + 1}`}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => removePro(index)}
-                                disabled={formData.pros.length === 1}
-                                className="text-red-500 hover:text-red-700 transition-colors p-2 disabled:text-gray-400 disabled:cursor-not-allowed"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        type="button"
-                        onClick={addPro}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Pro
-                    </button>
-                    <ErrorMessage error={errors.pros} />
-                </div>
-
-                {/* Cons */}
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Cons *
-                    </label>
-                    {formData.cons.map((con, index) => (
-                        <div key={index} className="flex items-center gap-2 mb-2">
-                            <input
-                                type="text"
-                                value={con}
-                                onChange={(e) => updateCon(index, e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder={`Con ${index + 1}`}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => removeCon(index)}
-                                disabled={formData.cons.length === 1}
-                                className="text-red-500 hover:text-red-700 transition-colors p-2 disabled:text-gray-400 disabled:cursor-not-allowed"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        type="button"
-                        onClick={addCon}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Con
-                    </button>
-                    <ErrorMessage error={errors.cons} />
-                </div>
-
                 {/* Reddit Reviews */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
@@ -657,7 +517,7 @@ const UpdateProductPostForm: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => router.push('/dashboard/allposts')}
-                        className="flex-1 bg-gray-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all"
+                        className="flex-1 bg-gray-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all cursor-pointer"
                     >
                         Cancel
                     </button>
@@ -665,7 +525,7 @@ const UpdateProductPostForm: React.FC = () => {
                         type="button"
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                        className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
                     >
                         {isSubmitting ? 'Updating Post...' : 'Update Product Post'}
                     </button>

@@ -7,7 +7,6 @@ import { IProduct, IRedditReview } from '@/models/post';
 import { Plus, X } from 'lucide-react';
 
 const AllPosts: React.FC = () => {
-    // ... existing AllPosts code remains the same ...
     const router = useRouter();
     const [posts, setPosts] = useState<IProduct[]>([]);
     const [loading, setLoading] = useState(true);
@@ -49,22 +48,22 @@ const AllPosts: React.FC = () => {
         try {
             setDeleteLoading(postId);
 
-            console.log('Attempting to delete post with ID:', postId); // Debug log
+            console.log('Attempting to delete post with ID:', postId);
 
             const response = await fetch(`/api/auth/post?id=${postId}`, {
                 method: 'DELETE',
             });
 
-            console.log('Delete response status:', response.status); // Debug log
+            console.log('Delete response status:', response.status);
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Delete error response:', errorData); // Debug log
+                console.error('Delete error response:', errorData);
                 throw new Error(errorData.error || 'Failed to delete post');
             }
 
             const result = await response.json();
-            console.log('Delete success result:', result); // Debug log
+            console.log('Delete success result:', result);
 
             // Remove post from state
             setPosts(prevPosts => {
@@ -80,7 +79,7 @@ const AllPosts: React.FC = () => {
             });
             alert('Post deleted successfully!');
         } catch (err) {
-            console.error('Delete error:', err); // Debug log
+            console.error('Delete error:', err);
             alert(err instanceof Error ? err.message : 'Failed to delete post');
         } finally {
             setDeleteLoading(null);
@@ -89,8 +88,8 @@ const AllPosts: React.FC = () => {
 
     // Handle update - open edit modal
     const handleUpdate = (post: IProduct) => {
-        console.log('Opening edit modal for post:', post); // Debug log
-        console.log('Reddit Reviews:', post.redditReviews); // Debug log
+        console.log('Opening edit modal for post:', post);
+        console.log('Reddit Reviews:', post.redditReviews);
         setEditingPost(post);
         setShowEditModal(true);
     };
@@ -189,7 +188,7 @@ const AllPosts: React.FC = () => {
                     <p className="text-red-600 mb-4">Error: {error}</p>
                     <button
                         onClick={fetchPosts}
-                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
                     >
                         Retry
                     </button>
@@ -219,7 +218,7 @@ const AllPosts: React.FC = () => {
                         <p className="text-gray-600 text-lg mb-4">No posts found</p>
                         <button
                             onClick={() => window.location.href = '/dashboard/addpost'}
-                            className="bg-[#FF5F1F] text-white px-6 py-2 rounded-lg hover:bg-[#f59772] transition-colors"
+                            className="bg-[#FF5F1F] text-white px-6 py-2 rounded-lg hover:bg-[#f59772] transition-colors cursor-pointer"
                         >
                             Create Your First Post
                         </button>
@@ -299,7 +298,7 @@ const AllPosts: React.FC = () => {
                             <button
                                 onClick={goToPreviousPage}
                                 disabled={currentPage === 1}
-                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white cursor-pointer"
                             >
                                 Previous
                             </button>
@@ -331,7 +330,7 @@ const AllPosts: React.FC = () => {
                                         <button
                                             key={page}
                                             onClick={() => goToPage(page)}
-                                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${isCurrentPage
+                                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${isCurrentPage
                                                     ? 'bg-[#FF5F1F] text-white border border-[#FF5F1F]'
                                                     : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
                                                 }`}
@@ -346,7 +345,7 @@ const AllPosts: React.FC = () => {
                             <button
                                 onClick={goToNextPage}
                                 disabled={currentPage === totalPages}
-                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white cursor-pointer"
                             >
                                 Next
                             </button>
@@ -389,8 +388,6 @@ const EditPostModal: React.FC<{
         affiliateLink: post.affiliateLink || '',
         affiliateLinkText: post.affiliateLinkText || '',
         productScore: post.productScore || 50,
-        pros: Array.isArray(post.pros) && post.pros.length > 0 ? post.pros : [''],
-        cons: Array.isArray(post.cons) && post.cons.length > 0 ? post.cons : [''],
         productPhotos: post.productPhotos || [],
     });
 
@@ -398,54 +395,6 @@ const EditPostModal: React.FC<{
     useEffect(() => {
         console.log('Form data initialized:', formData);
     }, [formData]);
-
-    // Pros functions
-    const addPro = () => {
-        setFormData(prev => ({
-            ...prev,
-            pros: [...prev.pros, '']
-        }));
-    };
-
-    const removePro = (index: number) => {
-        if (formData.pros.length > 1) {
-            setFormData(prev => ({
-                ...prev,
-                pros: prev.pros.filter((_, i) => i !== index)
-            }));
-        }
-    };
-
-    const updatePro = (index: number, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            pros: prev.pros.map((pro, i) => i === index ? value : pro)
-        }));
-    };
-
-    // Cons functions
-    const addCon = () => {
-        setFormData(prev => ({
-            ...prev,
-            cons: [...prev.cons, '']
-        }));
-    };
-
-    const removeCon = (index: number) => {
-        if (formData.cons.length > 1) {
-            setFormData(prev => ({
-                ...prev,
-                cons: prev.cons.filter((_, i) => i !== index)
-            }));
-        }
-    };
-
-    const updateCon = (index: number, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            cons: prev.cons.map((con, i) => i === index ? value : con)
-        }));
-    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -467,13 +416,10 @@ const EditPostModal: React.FC<{
 
         const cleanedData = {
             ...formData,
-            pros: formData.pros.filter(pro => pro.trim() !== ''),
-            cons: formData.cons.filter(con => con.trim() !== ''),
             redditReviews,
         };
         onSubmit(cleanedData);
     };
-
 
     // Remove image handler
     const handleRemoveImage = (idx: number) => {
@@ -510,7 +456,7 @@ const EditPostModal: React.FC<{
                                         />
                                         <button
                                             type="button"
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-80 hover:opacity-100"
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-80 hover:opacity-100 cursor-pointer"
                                             onClick={() => handleRemoveImage(idx)}
                                             title="Remove image"
                                         >
@@ -606,74 +552,6 @@ const EditPostModal: React.FC<{
                         />
                     </div>
 
-                    {/* Pros Section */}
-                    <div>
-                        <label className="block text-sm font-medium mb-3">Pros *</label>
-                        <div className="space-y-2">
-                            {formData.pros.map((pro, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={pro}
-                                        onChange={(e) => updatePro(index, e.target.value)}
-                                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                        placeholder={`Pro ${index + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removePro(index)}
-                                        disabled={formData.pros.length === 1}
-                                        className="text-red-500 hover:text-red-700 p-2 disabled:text-gray-400 disabled:cursor-not-allowed"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={addPro}
-                                className="flex items-center gap-2 text-lime-600 hover:text-lime-800 text-sm"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add Pro
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Cons Section */}
-                    <div>
-                        <label className="block text-sm font-medium mb-3">Cons *</label>
-                        <div className="space-y-2">
-                            {formData.cons.map((con, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        value={con}
-                                        onChange={(e) => updateCon(index, e.target.value)}
-                                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                        placeholder={`Con ${index + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeCon(index)}
-                                        disabled={formData.cons.length === 1}
-                                        className="text-red-500 hover:text-red-700 p-2 disabled:text-gray-400 disabled:cursor-not-allowed"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={addCon}
-                                className="flex items-center gap-2 text-lime-600 hover:text-lime-800 text-sm"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add Con
-                            </button>
-                        </div>
-                    </div>
-
                     {/* Reddit Reviews as JSON Array */}
                     <div>
                         <label className="block text-sm font-medium mb-3">
@@ -704,14 +582,14 @@ const EditPostModal: React.FC<{
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+                            className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer font-medium"
                             disabled={isLoading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-6 py-3 bg-[#FF5F1F] text-white rounded-lg hover:bg-[#f59772] disabled:opacity-50 font-medium"
+                            className="flex-1 px-6 cursor-pointer py-3 bg-[#FF5F1F] text-white rounded-lg hover:bg-[#f59772] disabled:opacity-50 font-medium"
                             disabled={isLoading}
                         >
                             {isLoading ? 'Updating...' : 'Update Post'}

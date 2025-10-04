@@ -127,16 +127,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => (
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
-        <span className="text-2xl font-bold text-[#FF5F1F]">
-          {product.productPrice}
-        </span>
-      </div>
-
       {/* Action Buttons */}
       <div className="flex flex-col gap-2">
         <Link
-          href={`/products/${product._id?.toString()}`}
+          href={`/products/${product._id?.toString()}-${idx + 1}`}
           className="bg-[#FF5F1F] hover:bg-[#FF5F1F]/90 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
         >
           <BarChart3 size={18} />
@@ -161,7 +155,7 @@ const CategoryProducts: React.FC = () => {
   const params = useParams();
   const rawCategory = decodeURIComponent(params?.name as string || "");
   const categoryName = rawCategory.replace(/-/g, " ");
-  
+
   const [products, setProducts] = useState<IProduct[]>([]);
   const [categoryData, setCategoryData] = useState<ICategoryData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -174,7 +168,7 @@ const CategoryProducts: React.FC = () => {
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       // Scroll by about the width of a card + gap (320px + 24px)
-      const scrollAmount = direction === 'left' ? -344 : 344; 
+      const scrollAmount = direction === 'left' ? -344 : 344;
       scrollContainerRef.current.scrollBy({
         left: scrollAmount,
         behavior: 'smooth',
@@ -203,17 +197,17 @@ const CategoryProducts: React.FC = () => {
           throw new Error("Failed to fetch category data");
 
         const categoryJson = await categoryResponse.json();
-        
+
         // CRITICAL FIX: Access the first element of the 'data' array 
         if (categoryJson && categoryJson.data && categoryJson.data.length > 0) {
-            const data = categoryJson.data[0]; 
-            setCategoryData(data as ICategoryData);
-            console.log("Fetched category data:", data);
+          const data = categoryJson.data[0];
+          setCategoryData(data as ICategoryData);
+          console.log("Fetched category data:", data);
         } else {
-            console.warn(`Category data for "${categoryName}" not found or empty.`);
-            setCategoryData(null); 
+          console.warn(`Category data for "${categoryName}" not found or empty.`);
+          setCategoryData(null);
         }
-        
+
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
         console.error("Fetch error:", err);
@@ -273,7 +267,7 @@ const CategoryProducts: React.FC = () => {
               {filtered.length > 3 && (
                 <button
                   onClick={() => scroll('left')}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block" 
+                  className="absolute left-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
                   aria-label="Scroll Left"
                 >
                   <ChevronLeft size={24} className="text-black" />
@@ -284,7 +278,7 @@ const CategoryProducts: React.FC = () => {
               <div
                 ref={scrollContainerRef}
                 // Use flex, overflow-x-auto, and snap for horizontal scroll
-                className="flex space-x-6 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide" 
+                className="flex space-x-6 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
               >
                 {filtered.map((product, idx) => (
                   <ProductCard product={product} idx={idx} key={product._id?.toString()} />
@@ -296,7 +290,7 @@ const CategoryProducts: React.FC = () => {
               {filtered.length > 3 && (
                 <button
                   onClick={() => scroll('right')}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block" 
+                  className="absolute right-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
                   aria-label="Scroll Right"
                 >
                   <ChevronRight size={24} className="text-black" />

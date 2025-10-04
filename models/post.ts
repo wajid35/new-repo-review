@@ -19,8 +19,6 @@ export interface IProduct {
     positiveReviewPercentage?: number;
     neutralReviewPercentage?: number;
     negativeReviewPercentage?: number;
-    pros: string[];
-    cons: string[];
     redditReviews: IRedditReview[];
     productScore: number;
     productRank?: number;
@@ -108,26 +106,6 @@ const productSchema = new Schema({
         type: String,
         required: true,
         maxlength: 50
-    },
-    pros: {
-        type: [String],
-        required: true,
-        validate: {
-            validator: function (arr: string[]) {
-                return arr.length > 0 && arr.some(pro => pro.trim().length > 0);
-            },
-            message: 'At least one pro is required'
-        }
-    },
-    cons: {
-        type: [String],
-        required: true,
-        validate: {
-            validator: function (arr: string[]) {
-                return arr.length > 0 && arr.some(con => con.trim().length > 0);
-            },
-            message: 'At least one con is required'
-        }
     },
     redditReviews: {
         type: [redditReviewSchema],

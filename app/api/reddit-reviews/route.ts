@@ -222,7 +222,7 @@ ${i + 1}. Comment: "${c.body}"
    Subreddit: ${c.subreddit}
 `).join('\n')}
 
-Return only valid JSON array, no additional text:`;
+Return only valid JSON array , no additional text. And try to maximize the number of positive tags:`;
 
   try {
     const response = await fetch(

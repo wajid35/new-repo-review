@@ -54,22 +54,6 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Validate pros and cons arrays
-        const validPros = body.pros?.filter(pro => pro.trim().length > 0) || [];
-        const validCons = body.cons?.filter(con => con.trim().length > 0) || [];
-
-        if (validPros.length === 0) {
-            return NextResponse.json({
-                error: 'At least one pro is required'
-            }, { status: 400 });
-        }
-
-        if (validCons.length === 0) {
-            return NextResponse.json({
-                error: 'At least one con is required'
-            }, { status: 400 });
-        }
-
         // Validate Reddit reviews (all required fields and URL)
         const validReviews = (body.redditReviews || []).filter(review =>
             review &&
@@ -109,8 +93,6 @@ export async function POST(request: NextRequest) {
             productPrice: body.productPrice.trim(),
             affiliateLink: body.affiliateLink.trim(),
             affiliateLinkText: body.affiliateLinkText.trim(),
-            pros: validPros,
-            cons: validCons,
             redditReviews: validReviews,
             productScore: body.productScore ?? 50,
             productRank: typeof body.productRank === 'number' ? body.productRank : undefined,
@@ -157,30 +139,6 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
         }
 
-        // Validate required fields
-        // if (
-        //   !updateData.productTitle ||
-        //   !updateData.productDescription ||
-        //   !updateData.productPrice ||
-        //   !updateData.affiliateLink ||
-        //   !updateData.affiliateLinkText ||
-        //   !updateData.category
-        // ) {
-        //   return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-        // }
-
-        // Validate pros and cons arrays
-        const validPros = updateData.pros?.filter((pro: string) => pro.trim().length > 0) || [];
-        const validCons = updateData.cons?.filter((con: string) => con.trim().length > 0) || [];
-
-        if (validPros.length === 0) {
-            return NextResponse.json({ error: "At least one pro is required" }, { status: 400 });
-        }
-
-        if (validCons.length === 0) {
-            return NextResponse.json({ error: "At least one con is required" }, { status: 400 });
-        }
-
         // Calculate review percentages
         const reviews = updateData.redditReviews || [];
         const totalReviews = reviews.length;
@@ -199,8 +157,6 @@ export async function PUT(request: NextRequest) {
             productPrice: updateData.productPrice.trim(),
             affiliateLink: updateData.affiliateLink.trim(),
             affiliateLinkText: updateData.affiliateLinkText.trim(),
-            pros: validPros,
-            cons: validCons,
             redditReviews: reviews,
             productScore: updateData.productScore ?? 50,
             productRank: updateData.productRank ?? undefined,
