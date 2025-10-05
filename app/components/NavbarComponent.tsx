@@ -104,10 +104,10 @@ export default function Navbar() {
                       <a href={i.href} key={i.label} className="hover:text-[#ff7847] transition-colors">{i.label}</a>
                     )}
                     <Link href="/categories">
-                      <Button variant="primary" className="text-[#FF5F1F] border-[#FF5F1F] hover:bg-[#FF5F1F] hover:text-white transition">Ranked Categories</Button>
+                      <Button variant="secondary" className="text-[#FF5F1F] border-[#FF5F1F] hover:bg-[#FF5F1F] hover:text-white transition">Ranked Categories</Button>
                     </Link>
                     <Link href="/products">
-                      <Button variant="secondary" className="bg-[#FF5F1F] text-white hover:bg-[#e34f14] transition">All Products</Button>
+                      <Button variant="primary" className="bg-[#FF5F1F] text-white hover:bg-[#e34f14] transition">All Products</Button>
                     </Link>
                   </div>
                 </motion.div>
