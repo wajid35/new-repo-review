@@ -8,8 +8,6 @@ interface RedditComment {
   subreddit?: string;
 }
 
-// Removed unused RedditPost interface
-
 export async function POST(request: NextRequest) {
   try {
     const { productTitle } = await request.json();
@@ -21,21 +19,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate title (max 3 words)
+    // Validate title (max 5 words)
     const words = productTitle.trim().split(/\s+/);
     if (words.length > 5 || words.length === 0) {
       return NextResponse.json(
-        { error: 'Product title must be 1-3 words' },
+        { error: 'Product title must be 1-5 words' },
         { status: 400 }
       );
     }
 
     // Step 1: Get Reddit access token
     const redditToken = await getRedditAccessToken();
-    
+
     // Step 2: Search Reddit for comments
     const redditComments = await searchRedditComments(productTitle, redditToken);
-    
+
     // Step 3: Process comments with LLM
     const processedComments = await processCommentsWithLLM(redditComments);
 
@@ -94,7 +92,7 @@ type ExtractedRedditComment = {
 async function searchRedditComments(productTitle: string, token: string): Promise<ExtractedRedditComment[]> {
   const userAgent = process.env.REDDIT_USER_AGENT;
   const searchQuery = encodeURIComponent(productTitle);
-  
+
   // Search in multiple relevant subreddits
   const subreddits = ['products', 'reviews', 'BuyItForLife', 'gadgets', 'technology', 'AskReddit'];
   const allComments: unknown[] = [];
@@ -134,11 +132,11 @@ async function searchRedditComments(productTitle: string, token: string): Promis
       }
     );
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.data && Array.isArray(data.data.children)) {
-          // Get comments from these posts
-          for (const post of data.data.children.slice(0, 10)) {
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.data && Array.isArray(data.data.children)) {
+        // Get comments from these posts
+        for (const post of data.data.children.slice(0, 10)) {
           try {
             const commentsResponse = await fetch(
               `https://oauth.reddit.com${post.data.permalink}.json?limit=20`,
@@ -187,9 +185,9 @@ async function searchRedditComments(productTitle: string, token: string): Promis
       } as ExtractedRedditComment;
     });
 
-  // Randomize and limit to 30-50 comments
+  // Randomize and limit to 60-100 comments
   const shuffled = validComments.sort(() => 0.5 - Math.random());
-  const targetCount = Math.floor(Math.random() * 21) + 30; // 30-50
+  const targetCount = Math.floor(Math.random() * 41) + 60; // 60-100
   return shuffled.slice(0, Math.min(targetCount, shuffled.length));
 }
 
@@ -199,7 +197,7 @@ async function processCommentsWithLLM(comments: ExtractedRedditComment[]): Promi
   }
 
   const googleApiKey = process.env.GOOGLE_API_KEY;
-  
+
   if (!googleApiKey) {
     throw new Error('Google API key not configured');
   }
@@ -207,9 +205,16 @@ async function processCommentsWithLLM(comments: ExtractedRedditComment[]): Promi
   const prompt = `
 Analyze the following Reddit comments and return a JSON array where each comment is classified with sentiment analysis.
 
+IMPORTANT INSTRUCTIONS:
+- Maximize positive sentiment classifications
+- Convert neutral comments to positive when they show even slight favor or no strong negativity
+- Only mark comments as negative if they explicitly criticize or express strong dissatisfaction
+- Aim for at least 70-80% positive tags in the final output
+- Be generous with positive classifications
+
 For each comment, return an object with:
 - comment: the original comment text (clean and readable)
-- tag: either "positive", "negative", or "neutral"
+- tag: either "positive", "negative", or "neutral" (favor "positive" whenever possible)
 - link: the reddit permalink
 - author: the username
 - subreddit: the subreddit name
@@ -222,7 +227,7 @@ ${i + 1}. Comment: "${c.body}"
    Subreddit: ${c.subreddit}
 `).join('\n')}
 
-Return only valid JSON array , no additional text. And try to maximize the number of positive tags:`;
+Return only valid JSON array, no additional text. Remember: maximize positive tags by being generous with positive sentiment classification.`;
 
   try {
     const response = await fetch(
@@ -254,9 +259,10 @@ Return only valid JSON array , no additional text. And try to maximize the numbe
     const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const parsed = JSON.parse(cleanedText);
 
-    // Basic runtime validation: expect an array of objects with required fields
+    // Basic runtime validation
     if (!Array.isArray(parsed)) throw new Error('LLM returned non-array');
-    const processedComments: RedditComment[] = (parsed as unknown[]).map((p) => {
+
+    let processedComments: RedditComment[] = (parsed as unknown[]).map((p) => {
       const obj = p as Record<string, unknown>;
       return {
         comment: String(obj.comment ?? obj.commentText ?? ''),
@@ -267,31 +273,66 @@ Return only valid JSON array , no additional text. And try to maximize the numbe
       } as RedditComment;
     });
 
+    // Post-process: Convert some neutral tags to positive to maximize positive reviews
+    processedComments = convertNeutralToPositive(processedComments);
+
     return processedComments;
 
   } catch (error) {
     console.error('LLM processing error:', error);
-    
-    // Fallback: basic sentiment analysis
-    return comments.map(comment => ({
+
+    // Fallback: basic sentiment analysis with positive bias
+    const fallbackComments = comments.map(comment => ({
       comment: comment.body.substring(0, 500),
       tag: getBasicSentiment(comment.body),
       link: comment.permalink,
       author: comment.author,
       subreddit: comment.subreddit
     }));
+
+    // Apply positive conversion to fallback as well
+    return convertNeutralToPositive(fallbackComments);
   }
 }
 
+function convertNeutralToPositive(comments: RedditComment[]): RedditComment[] {
+  const neutralComments = comments.filter(c => c.tag === 'neutral');
+  const positiveComments = comments.filter(c => c.tag === 'positive');
+  const negativeComments = comments.filter(c => c.tag === 'negative');
+
+  // Calculate how many neutral to convert
+  // Target: 70-80% positive
+  const totalComments = comments.length;
+  const targetPositive = Math.floor(totalComments * 0.75); // 75% positive target
+  const currentPositive = positiveComments.length;
+  const neutralToConvert = Math.min(
+    Math.max(0, targetPositive - currentPositive),
+    neutralComments.length
+  );
+
+  // Convert neutral to positive
+  const shuffledNeutral = neutralComments.sort(() => 0.5 - Math.random());
+  const convertedComments = shuffledNeutral.slice(0, neutralToConvert).map(c => ({
+    ...c,
+    tag: 'positive' as const
+  }));
+
+  const remainingNeutral = shuffledNeutral.slice(neutralToConvert);
+
+  return [...positiveComments, ...convertedComments, ...remainingNeutral, ...negativeComments];
+}
+
 function getBasicSentiment(text: string): 'positive' | 'negative' | 'neutral' {
-  const positiveWords = ['good', 'great', 'excellent', 'amazing', 'love', 'best', 'awesome', 'perfect', 'fantastic'];
-  const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing', 'useless'];
-  
+  const positiveWords = ['good', 'great', 'excellent', 'amazing', 'love', 'best', 'awesome', 'perfect', 'fantastic', 'recommend', 'nice', 'solid', 'quality', 'works', 'satisfied', 'happy', 'worth'];
+  const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing', 'useless', 'waste', 'broken', 'poor', 'avoid'];
+
   const lowerText = text.toLowerCase();
   const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
   const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
-  
-  if (positiveCount > negativeCount) return 'positive';
-  if (negativeCount > positiveCount) return 'negative';
+
+  // Bias towards positive - require more negative words to classify as negative
+  if (positiveCount > 0 && negativeCount === 0) return 'positive';
+  if (positiveCount >= negativeCount) return 'positive';
+  if (negativeCount > positiveCount * 1.5) return 'negative'; // Need significantly more negative
   return 'neutral';
 }
