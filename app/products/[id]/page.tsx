@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ExternalLink, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
-import { IProduct } from '@/models/post'; // Assuming IProduct exists and includes likesAndDislikes
+import { IProduct } from '@/models/post';
 
 // --- Interface Definitions ---
 
@@ -36,7 +36,6 @@ interface LikesDislikesFeatureProps {
 }
 
 const LikesDislikesFeature: React.FC<LikesDislikesFeatureProps> = ({ data, type }) => {
-    // State to manage which heading is currently expanded
     const [expandedHeading, setExpandedHeading] = useState<string | null>(null);
 
     const toggleExpansion = (heading: string) => {
@@ -46,7 +45,6 @@ const LikesDislikesFeature: React.FC<LikesDislikesFeatureProps> = ({ data, type 
     const isLike = type === 'like';
     const textColor = isLike ? 'text-green-600' : 'text-red-600';
     const title = isLike ? 'Positive Things:' : 'Negative Things:';
-    const Icon = expandedHeading ? ChevronUp : ChevronDown;
 
     return (
         <div className="flex-1 min-w-0">
@@ -61,14 +59,12 @@ const LikesDislikesFeature: React.FC<LikesDislikesFeatureProps> = ({ data, type 
                             <span className={`font-semibold text-sm ${textColor}`}>
                                 {item.heading}
                             </span>
-                            {/* Display the Chevron icon based on expansion state */}
                             {expandedHeading === item.heading ? (
                                 <ChevronUp className="w-4 h-4 text-gray-500" />
                             ) : (
                                 <ChevronDown className="w-4 h-4 text-gray-500" />
                             )}
                         </button>
-                        {/* Display points only if the current heading is expanded */}
                         {expandedHeading === item.heading && (
                             <ul className="list-disc pl-8 py-2 text-sm text-gray-600 space-y-1 bg-gray-50 rounded-b">
                                 {item.points.map((point, index) => (
@@ -82,7 +78,6 @@ const LikesDislikesFeature: React.FC<LikesDislikesFeatureProps> = ({ data, type 
         </div>
     );
 };
-
 
 // --- NEW COMPONENT: ProductLikesDislikes ---
 
@@ -106,7 +101,7 @@ const ProductLikesDislikes: React.FC<ProductLikesDislikesProps> = ({ likesAndDis
     );
 };
 
-// --- Existing Components (Unchanged) ---
+// --- Existing Components ---
 
 const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
     const [showFullText, setShowFullText] = useState(false);
@@ -262,6 +257,7 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
 const ProductDetailPage: React.FC = () => {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { data: session } = useSession();
     const [product, setProduct] = useState<IProduct | null>(null);
     const [loading, setLoading] = useState(true);
@@ -271,52 +267,51 @@ const ProductDetailPage: React.FC = () => {
     const [productRank, setProductRank] = useState<number | null>(null);
 
     useEffect(() => {
-        console.log('Product data is: ->->-> ', product);
-    }, [product]);
-
-    useEffect(() => {
         const fetchProductData = async () => {
-            if (params.id) {
-                try {
-                    setLoading(true);
+            // Get product ID from query parameter
+            const productId = searchParams.get('id');
 
-                    // Extract product ID and rank from the params
-                    const fullId = params.id as string;
-                    const lastDashIndex = fullId.lastIndexOf('-');
+            if (!productId) {
+                setError('Product ID not found');
+                setLoading(false);
+                return;
+            }
 
-                    let productId = fullId;
-                    let rank = null;
+            // Extract rank from the slug (last number after final hyphen)
+            if (params.slug) {
+                const slug = params.slug as string;
+                const lastDashIndex = slug.lastIndexOf('-');
 
-                    if (lastDashIndex !== -1) {
-                        productId = fullId.substring(0, lastDashIndex);
-                        const rankString = fullId.substring(lastDashIndex + 1);
-                        rank = parseInt(rankString, 10);
+                if (lastDashIndex !== -1) {
+                    const rankString = slug.substring(lastDashIndex + 1);
+                    const rank = parseInt(rankString, 10);
 
-                        if (!isNaN(rank)) {
-                            setProductRank(rank);
-                        }
+                    if (!isNaN(rank)) {
+                        setProductRank(rank);
                     }
-
-                    const response = await fetch(`/api/auth/post/${productId}`);
-
-                    if (!response.ok) {
-                        throw new Error('Product not found');
-                    }
-
-                    const data = await response.json();
-                    console.log('Fetched product data: ', data);
-                    setProduct(data);
-                    console.log('Product data is: ->->-> ', product)
-                } catch (err) {
-                    setError(err instanceof Error ? err.message : 'An error occurred');
-                } finally {
-                    setLoading(false);
                 }
+            }
+
+            try {
+                setLoading(true);
+
+                const response = await fetch(`/api/auth/post/${productId}`);
+
+                if (!response.ok) {
+                    throw new Error('Product not found');
+                }
+
+                const data = await response.json();
+                setProduct(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchProductData();
-    }, [params.id, session?.user?.id]);
+    }, [params.slug, searchParams, session?.user?.id]);
 
     const handleShare = async () => {
         if (navigator.share) {
@@ -338,13 +333,11 @@ const ProductDetailPage: React.FC = () => {
     const getTopics = () => {
         if (!product?.redditReviews) return [];
 
-        // Extract unique meaningful keywords from reviews
         const topics = new Set<string>();
 
         product.redditReviews.forEach(review => {
             const text = review.comment.toLowerCase();
 
-            // Add relevant topics based on common keywords
             if (text.includes('price') || text.includes('cheap') || text.includes('expensive') || text.includes('worth') || text.includes('value')) {
                 topics.add('price/value');
             }
@@ -377,7 +370,7 @@ const ProductDetailPage: React.FC = () => {
             }
         });
 
-        return Array.from(topics).slice(0, 8); // Limit to 8 topics
+        return Array.from(topics).slice(0, 8);
     };
 
     const toggleTopic = (topic: string) => {
@@ -399,7 +392,7 @@ const ProductDetailPage: React.FC = () => {
                 switch (topic) {
                     case 'price/value':
                         return text.includes('price') || text.includes('cheap') || text.includes('expensive') ||
-                            text.includes('worth') || text.includes('value') || text.includes('cost') || text.includes('$');
+                            text.includes('worth') || text.includes('value') || text.includes('cost');
                     case 'quality':
                         return text.includes('quality') || text.includes('build') || text.includes('durable') ||
                             text.includes('sturdy') || text.includes('solid') || text.includes('premium');
@@ -498,7 +491,7 @@ const ProductDetailPage: React.FC = () => {
                     </button>
                 </div>
 
-                {/* --- PRODUCT INFO SECTION --- */}
+                {/* PRODUCT INFO SECTION */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="lg:col-span-4">
                         <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
@@ -542,22 +535,18 @@ const ProductDetailPage: React.FC = () => {
                                     <span className="font-bold text-gray-900 group-hover:text-white">{product.productPrice}</span>
                                 </div>
                             </a>
-
                         </div>
 
                         <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">{product.productDescription}</p>
                     </div>
                 </div>
-                {/* --- END PRODUCT INFO SECTION --- */}
 
-                {/* --- LIKES AND DISLIKES SECTION (NEW) --- */}
-                {/* Ensure your IProduct type includes `likesAndDislikes: LikesDislikesData` */}
+                {/* LIKES AND DISLIKES SECTION */}
                 {(product as IProduct & { likesAndDislikes?: LikesDislikesData }).likesAndDislikes && (
                     <ProductLikesDislikes likesAndDislikes={(product as IProduct & { likesAndDislikes: LikesDislikesData }).likesAndDislikes} />
                 )}
-                {/* --- END LIKES AND DISLIKES SECTION --- */}
 
-
+                {/* REDDIT REVIEWS SECTION */}
                 {product.redditReviews && product.redditReviews.length > 0 && (
                     <div className="mt-12 space-y-6">
                         <h2 className="text-2xl font-bold text-gray-900">Reddit Reviews:</h2>

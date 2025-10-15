@@ -38,7 +38,7 @@ export default function RedditReviewsGenerator() {
     {
       id: 'howto-2',
       type: 'system',
-      content: 'How it works: \n  Enter a product name → AI searches Reddit \n  → Analyzes 30-50 comments \n  → Returns sentiment analysis',
+      content: 'How it works: \n  Enter a product name → AI searches Reddit \n  → Analyzes 50-100 comments \n  → Returns sentiment analysis',
       timestamp: new Date(),
     }
   ]);

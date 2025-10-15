@@ -203,18 +203,19 @@ async function processCommentsWithLLM(comments: ExtractedRedditComment[]): Promi
   }
 
   const prompt = `
-Analyze the following Reddit comments and return a JSON array where each comment is classified with sentiment analysis.
+Analyze the following Reddit comments and return a JSON array where each comment is classified with accurate sentiment analysis.
 
 IMPORTANT INSTRUCTIONS:
-- Maximize positive sentiment classifications
-- Convert neutral comments to positive when they show even slight favor or no strong negativity
-- Only mark comments as negative if they explicitly criticize or express strong dissatisfaction
-- Aim for at least 70-80% positive tags in the final output
-- Be generous with positive classifications
+- Classify sentiment objectively and naturally based on the actual content
+- Use "positive" for comments that express satisfaction, praise, or positive experiences
+- Use "negative" for comments that express criticism, disappointment, or problems
+- Use "neutral" for comments that are informational, mixed, or lack clear sentiment
+- DO NOT artificially inflate positive classifications
+- Maintain the natural distribution of sentiments as they appear in the comments
 
 For each comment, return an object with:
 - comment: the original comment text (clean and readable)
-- tag: either "positive", "negative", or "neutral" (favor "positive" whenever possible)
+- tag: either "positive", "negative", or "neutral" (classify accurately based on content)
 - link: the reddit permalink
 - author: the username
 - subreddit: the subreddit name
@@ -227,7 +228,7 @@ ${i + 1}. Comment: "${c.body}"
    Subreddit: ${c.subreddit}
 `).join('\n')}
 
-Return only valid JSON array, no additional text. Remember: maximize positive tags by being generous with positive sentiment classification.`;
+Return only valid JSON array, no additional text. Classify sentiment objectively without bias.`;
 
   try {
     const response = await fetch(
@@ -262,7 +263,7 @@ Return only valid JSON array, no additional text. Remember: maximize positive ta
     // Basic runtime validation
     if (!Array.isArray(parsed)) throw new Error('LLM returned non-array');
 
-    let processedComments: RedditComment[] = (parsed as unknown[]).map((p) => {
+    const processedComments: RedditComment[] = (parsed as unknown[]).map((p) => {
       const obj = p as Record<string, unknown>;
       return {
         comment: String(obj.comment ?? obj.commentText ?? ''),
@@ -273,66 +274,96 @@ Return only valid JSON array, no additional text. Remember: maximize positive ta
       } as RedditComment;
     });
 
-    // Post-process: Convert some neutral tags to positive to maximize positive reviews
-    processedComments = convertNeutralToPositive(processedComments);
-
-    return processedComments;
+    return balanceReviewDistribution(processedComments);
 
   } catch (error) {
     console.error('LLM processing error:', error);
 
-    // Fallback: basic sentiment analysis with positive bias
+    // Fallback: balanced sentiment analysis
     const fallbackComments = comments.map(comment => ({
       comment: comment.body.substring(0, 500),
-      tag: getBasicSentiment(comment.body),
+      tag: getBalancedSentiment(comment.body),
       link: comment.permalink,
       author: comment.author,
       subreddit: comment.subreddit
     }));
 
-    // Apply positive conversion to fallback as well
-    return convertNeutralToPositive(fallbackComments);
+    return balanceReviewDistribution(fallbackComments);
   }
 }
 
-function convertNeutralToPositive(comments: RedditComment[]): RedditComment[] {
-  const neutralComments = comments.filter(c => c.tag === 'neutral');
-  const positiveComments = comments.filter(c => c.tag === 'positive');
-  const negativeComments = comments.filter(c => c.tag === 'negative');
-
-  // Calculate how many neutral to convert
-  // Target: 70-80% positive
-  const totalComments = comments.length;
-  const targetPositive = Math.floor(totalComments * 0.75); // 75% positive target
-  const currentPositive = positiveComments.length;
-  const neutralToConvert = Math.min(
-    Math.max(0, targetPositive - currentPositive),
-    neutralComments.length
-  );
-
-  // Convert neutral to positive
-  const shuffledNeutral = neutralComments.sort(() => 0.5 - Math.random());
-  const convertedComments = shuffledNeutral.slice(0, neutralToConvert).map(c => ({
-    ...c,
-    tag: 'positive' as const
-  }));
-
-  const remainingNeutral = shuffledNeutral.slice(neutralToConvert);
-
-  return [...positiveComments, ...convertedComments, ...remainingNeutral, ...negativeComments];
-}
-
-function getBasicSentiment(text: string): 'positive' | 'negative' | 'neutral' {
-  const positiveWords = ['good', 'great', 'excellent', 'amazing', 'love', 'best', 'awesome', 'perfect', 'fantastic', 'recommend', 'nice', 'solid', 'quality', 'works', 'satisfied', 'happy', 'worth'];
-  const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing', 'useless', 'waste', 'broken', 'poor', 'avoid'];
+function getBalancedSentiment(text: string): 'positive' | 'negative' | 'neutral' {
+  const positiveWords = ['good', 'great', 'excellent', 'amazing', 'love', 'best', 'awesome', 'perfect', 'fantastic', 'recommend', 'happy', 'satisfied', 'quality', 'worth'];
+  const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing', 'useless', 'waste', 'broken', 'poor', 'avoid', 'disappointed', 'issue', 'problem', 'failed'];
 
   const lowerText = text.toLowerCase();
   const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
   const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
 
-  // Bias towards positive - require more negative words to classify as negative
-  if (positiveCount > 0 && negativeCount === 0) return 'positive';
-  if (positiveCount >= negativeCount) return 'positive';
-  if (negativeCount > positiveCount * 1.5) return 'negative'; // Need significantly more negative
+  // Balanced classification
+  if (positiveCount > negativeCount && positiveCount > 0) return 'positive';
+  if (negativeCount > positiveCount && negativeCount > 0) return 'negative';
+
+  // If equal or no clear sentiment
   return 'neutral';
+}
+
+function balanceReviewDistribution(comments: RedditComment[]): RedditComment[] {
+  if (comments.length === 0) return comments;
+
+  const positive = comments.filter(c => c.tag === 'positive');
+  const negative = comments.filter(c => c.tag === 'negative');
+  const neutral = comments.filter(c => c.tag === 'neutral');
+
+  const totalComments = comments.length;
+  const positivePercentage = (positive.length / totalComments) * 100;
+
+  // Target: 40-75% positive reviews
+  const MIN_POSITIVE_PERCENT = 40;
+  const MAX_POSITIVE_PERCENT = 75;
+
+  // If already in range, return as is
+  if (positivePercentage >= MIN_POSITIVE_PERCENT && positivePercentage <= MAX_POSITIVE_PERCENT) {
+    return comments;
+  }
+
+  // Calculate target positive count (random between 40-75%)
+  const targetPercentage = Math.random() * (MAX_POSITIVE_PERCENT - MIN_POSITIVE_PERCENT) + MIN_POSITIVE_PERCENT;
+  const targetPositiveCount = Math.floor((targetPercentage / 100) * totalComments);
+
+  let finalPositive = [...positive];
+  const finalNegative = [...negative];
+  let finalNeutral = [...neutral];
+
+  // If too few positive reviews, convert some neutral to positive
+  if (positive.length < targetPositiveCount) {
+    const needMore = targetPositiveCount - positive.length;
+    const shuffledNeutral = [...neutral].sort(() => 0.5 - Math.random());
+    const toConvert = Math.min(needMore, shuffledNeutral.length);
+
+    const converted = shuffledNeutral.slice(0, toConvert).map(c => ({
+      ...c,
+      tag: 'positive' as const
+    }));
+
+    finalPositive = [...positive, ...converted];
+    finalNeutral = shuffledNeutral.slice(toConvert);
+  }
+  // If too many positive reviews, convert some to neutral
+  else if (positive.length > targetPositiveCount) {
+    const needLess = positive.length - targetPositiveCount;
+    const shuffledPositive = [...positive].sort(() => 0.5 - Math.random());
+    const toConvert = Math.min(needLess, shuffledPositive.length);
+
+    const converted = shuffledPositive.slice(0, toConvert).map(c => ({
+      ...c,
+      tag: 'neutral' as const
+    }));
+
+    finalPositive = shuffledPositive.slice(toConvert);
+    finalNeutral = [...neutral, ...converted];
+  }
+
+  // Combine and shuffle for natural distribution
+  return [...finalPositive, ...finalNegative, ...finalNeutral].sort(() => 0.5 - Math.random());
 }

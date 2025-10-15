@@ -9,12 +9,12 @@ import { BarChart3, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react
 
 // Define the type for the FAQ structure
 interface IFaq {
-  _id?: string; // Optional since your sample didn't explicitly show it on the FAQ objects themselves
+  _id?: string;
   question: string;
   answer: string;
 }
 
-// Define the type for the category data (corrected structure)
+// Define the type for the category data
 interface ICategoryData {
   _id: string;
   name: string;
@@ -25,133 +25,149 @@ interface ICategoryData {
   __v: number;
 }
 
+// Helper function to create URL-friendly slug from product title
+const createProductSlug = (title: string, rank: number): string => {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .trim();
+  return `${slug}-${rank}`;
+};
+
 // Separate component for the Product Card
 interface ProductCardProps {
   product: IProduct;
   idx: number;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => (
-  // Added fixed width and flex-shrink-0 for horizontal scrolling
-  <div
-    className="bg-white rounded-xl p-6 hover:bg-gray-100 transition-all duration-300 border border-gray-200 hover:border-[#FF5F1F]/50 group relative shadow-sm w-full md:w-80 flex-shrink-0 snap-center"
-    key={product._id?.toString()}
-  >
-    {/* Rank Badge - Moved to top */}
-    <div className="absolute top-4 left-4 bg-[#FF5F1F] text-white rounded-lg px-3 py-1 font-bold text-sm z-10 shadow-lg">
-      #{idx + 1}
-    </div>
+const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => {
+  const productSlug = createProductSlug(product.productTitle, idx + 1);
 
-    {/* Product Image */}
-    <Link href={`/products/${product._id?.toString()}-${idx + 1}`}>
-      <div className="relative cursor-pointer w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
-        {product.productPhotos && product.productPhotos.length > 0 ? (
-          <Image
-            src={product.productPhotos[0]}
-            alt={product.productTitle}
-            width={400}
-            height={200}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
-                📦
+  return (
+    <div
+      className="bg-white rounded-xl p-6 hover:bg-gray-100 transition-all duration-300 border border-gray-200 hover:border-[#FF5F1F]/50 group relative shadow-sm w-full md:w-80 flex-shrink-0 snap-center"
+      key={product._id?.toString()}
+    >
+      {/* Rank Badge */}
+      <div className="absolute top-4 left-4 bg-[#FF5F1F] text-white rounded-lg px-3 py-1 font-bold text-sm z-10 shadow-lg">
+        #{idx + 1}
+      </div>
+
+      {/* Product Image */}
+      <Link
+        href={`/products/${productSlug}?id=${product._id?.toString()}`}
+        className="block"
+      >
+        <div className="relative cursor-pointer w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
+          {product.productPhotos && product.productPhotos.length > 0 ? (
+            <Image
+              src={product.productPhotos[0]}
+              alt={product.productTitle}
+              width={400}
+              height={200}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
+                  📦
+                </div>
+                <p className="text-sm">No Image</p>
               </div>
-              <p className="text-sm">No Image</p>
+            </div>
+          )}
+        </div>
+      </Link>
+
+      {/* Product Info */}
+      <div className="space-y-3">
+        <h3 className="text-xl font-bold text-black line-clamp-1 group-hover:text-[#FF5F1F] transition-colors">
+          {product.productTitle}
+        </h3>
+
+        {/* Review Bars */}
+        <div className="space-y-2">
+          {/* Positive */}
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-green-600">Positive</span>
+              <span className="text-green-600">
+                {product.positiveReviewPercentage || 0}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${product.positiveReviewPercentage || 0}%`,
+                }}
+              ></div>
             </div>
           </div>
-        )}
-      </div>
-    </Link>
 
-    {/* Product Info */}
-    <div className="space-y-3">
-      <h3 className="text-xl font-bold text-black line-clamp-1 group-hover:text-[#FF5F1F] transition-colors">
-        {product.productTitle}
-      </h3>
-
-      {/* Review Bars */}
-      <div className="space-y-2">
-        {/* Positive */}
-        <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-green-600">Positive</span>
-            <span className="text-green-600">
-              {product.positiveReviewPercentage || 0}%
-            </span>
+          {/* Neutral */}
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-yellow-600">Neutral</span>
+              <span className="text-yellow-600">
+                {product.neutralReviewPercentage || 0}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${product.neutralReviewPercentage || 0}%`,
+                }}
+              ></div>
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-green-500 h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${product.positiveReviewPercentage || 0}%`,
-              }}
-            ></div>
+
+          {/* Negative */}
+          <div>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-red-600">Negative</span>
+              <span className="text-red-600">
+                {product.negativeReviewPercentage || 0}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${product.negativeReviewPercentage || 0}%`,
+                }}
+              ></div>
+            </div>
           </div>
         </div>
 
-        {/* Neutral */}
-        <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-yellow-600">Neutral</span>
-            <span className="text-yellow-600">
-              {product.neutralReviewPercentage || 0}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${product.neutralReviewPercentage || 0}%`,
-              }}
-            ></div>
-          </div>
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2">
+          <Link
+            href={`/products/${productSlug}?id=${product._id?.toString()}`}
+            className="bg-[#FF5F1F] hover:bg-[#FF5F1F]/90 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <BarChart3 size={18} />
+            View Analysis
+          </Link>
+          <Link
+            href={product.affiliateLink}
+            className="bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink size={18} />
+            <span>{product.affiliateLinkText}</span><span>{`USD ${product.productPrice}`}</span>
+          </Link>
         </div>
-
-        {/* Negative */}
-        <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-red-600">Negative</span>
-            <span className="text-red-600">
-              {product.negativeReviewPercentage || 0}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-red-500 h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${product.negativeReviewPercentage || 0}%`,
-              }}
-            ></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-col gap-2">
-        <Link
-          href={`/products/${product._id?.toString()}-${idx + 1}`}
-          className="bg-[#FF5F1F] hover:bg-[#FF5F1F]/90 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-        >
-          <BarChart3 size={18} />
-          View Analysis
-        </Link>
-        <Link
-          href={product.affiliateLink}
-          className="bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <ExternalLink size={18} />
-          <span>{product.affiliateLinkText}</span><span>{`USD ${product.productPrice}`}</span>
-        </Link>
       </div>
     </div>
-  </div>
-);
-
+  );
+};
 
 const CategoryProducts: React.FC = () => {
   const params = useParams();
@@ -164,13 +180,10 @@ const CategoryProducts: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'rank' | 'price' | 'positive'>('rank');
 
-  // Ref for the scrollable container
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Function to handle horizontal scrolling
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      // Scroll by about the width of a card + gap (320px + 24px)
       const scrollAmount = direction === 'left' ? -344 : 344;
       scrollContainerRef.current.scrollBy({
         left: scrollAmount,
@@ -185,14 +198,11 @@ const CategoryProducts: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // 1. Fetch Products
         const productResponse = await fetch("/api/auth/post");
         if (!productResponse.ok) throw new Error("Failed to fetch products");
         const productData = await productResponse.json();
         setProducts(productData);
 
-        // 2. Fetch Category Data (including FAQs)
-        // 🚨 Assumed endpoint for category details by name
         const categoryResponse = await fetch(
           `/api/categories?name=${encodeURIComponent(categoryName)}`
         );
@@ -201,13 +211,10 @@ const CategoryProducts: React.FC = () => {
 
         const categoryJson = await categoryResponse.json();
 
-        // CRITICAL FIX: Access the first element of the 'data' array 
         if (categoryJson && categoryJson.data && categoryJson.data.length > 0) {
           const data = categoryJson.data[0];
           setCategoryData(data as ICategoryData);
-          console.log("Fetched category data:", data);
         } else {
-          console.warn(`Category data for "${categoryName}" not found or empty.`);
           setCategoryData(null);
         }
 
@@ -233,7 +240,7 @@ const CategoryProducts: React.FC = () => {
       } else if (sortBy === 'price') {
         const priceA = parseFloat(a.productPrice?.replace(/[^0-9.]/g, '') || '0');
         const priceB = parseFloat(b.productPrice?.replace(/[^0-9.]/g, '') || '0');
-        return priceA - priceB; // Low to high
+        return priceA - priceB;
       } else if (sortBy === 'positive') {
         return (b.positiveReviewPercentage ?? 0) - (a.positiveReviewPercentage ?? 0);
       }
@@ -305,12 +312,8 @@ const CategoryProducts: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* -------------------------------------------------- */}
-            {/* 1. Horizontal Scrollable Product Cards Section */}
-            {/* -------------------------------------------------- */}
+            {/* Horizontal Scrollable Product Cards Section */}
             <div className="relative mb-12">
-              {/* Left Scroll Button */}
-              {/* Hide the button if there are not enough items to scroll */}
               {filtered.length > 3 && (
                 <button
                   onClick={() => scroll('left')}
@@ -321,10 +324,8 @@ const CategoryProducts: React.FC = () => {
                 </button>
               )}
 
-              {/* Card Container */}
               <div
                 ref={scrollContainerRef}
-                // Use flex, overflow-x-auto, and snap for horizontal scroll
                 className="flex space-x-6 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
               >
                 {filtered.map((product, idx) => (
@@ -332,8 +333,6 @@ const CategoryProducts: React.FC = () => {
                 ))}
               </div>
 
-              {/* Right Scroll Button */}
-              {/* Hide the button if there are not enough items to scroll */}
               {filtered.length > 3 && (
                 <button
                   onClick={() => scroll('right')}
@@ -345,9 +344,7 @@ const CategoryProducts: React.FC = () => {
               )}
             </div>
 
-            {/* -------------------------------------------------- */}
-            {/* 2. FAQs Section (Below Cards) */}
-            {/* -------------------------------------------------- */}
+            {/* FAQs Section */}
             {faqs.length > 0 && (
               <div className="mt-12 pt-8 border-t border-gray-200">
                 <h2 className="text-3xl font-bold text-black mb-6 text-center">
@@ -355,9 +352,8 @@ const CategoryProducts: React.FC = () => {
                 </h2>
                 <div className="space-y-4 max-w-4xl mx-auto">
                   {faqs.map((faq, index) => (
-                    // Simple Accordion Style for FAQs
                     <div
-                      key={faq._id || index} // Use index as fallback key
+                      key={faq._id || index}
                       className="border border-gray-200 rounded-lg shadow-sm overflow-hidden"
                     >
                       <h3 className="p-4 bg-gray-50 text-lg font-semibold text-black">
