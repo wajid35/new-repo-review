@@ -45,7 +45,7 @@ export default function Navbar() {
                     <line x1={12} y1={22.08} x2={12} y2={12} />
                     <line x1={12} y1={22.08} x2={12} y2={12} />
                   </svg>
-                  <span className="text-[#FF5F1F] font-bold text-xl">Reddit Reviews</span>
+                  <span className="text-[#FF5F1F] font-bold text-xl">RedditRevs</span>
                 </div>
               </Link>
 

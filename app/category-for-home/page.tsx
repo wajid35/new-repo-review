@@ -73,15 +73,24 @@ const CategoriesGrid: React.FC = () => {
   );
 
   // Get suggestions based on search term
-  const suggestions = searchTerm.trim() === '' 
-    ? categories 
+  const suggestions = searchTerm.trim() === ''
+    ? categories
     : categories.filter(cat =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const handleSuggestionClick = (categoryName: string) => {
     setSearchTerm(categoryName);
     setShowSuggestions(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setShowSuggestions(true);
+  };
+
+  const handleInputFocus = () => {
+    setShowSuggestions(true);
   };
 
   if (loading) {
@@ -122,16 +131,37 @@ const CategoriesGrid: React.FC = () => {
         {/* Search Bar - Centered and Smaller */}
         <div className="mb-8 flex justify-center">
           <div ref={searchRef} className="relative w-full max-w-md">
-            <input
-              type="text"
-              placeholder="Search categories..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              onFocus={() => setShowSuggestions(true)}
-              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF5F1F] focus:border-transparent"
-            />
-            
-            {/* Suggestions Dropdown */}
+            <div className="relative">
+              {/* ✅ Remove pointer-events-none so clicks work properly */}
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"
+                  />
+                </svg>
+              </span>
+
+              <input
+                type="text"
+                placeholder="Earbuds, AirFryer ..."
+                value={searchTerm}
+                onChange={handleInputChange}
+                onFocus={handleInputFocus}
+                aria-label="Search categories"
+                className="w-full bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-3 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FF5F1F] focus:border-transparent"
+              />
+            </div>
+
+            {/* ✅ Suggestions Dropdown now works again */}
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {suggestions.map((category) => (
@@ -172,7 +202,7 @@ const CategoriesGrid: React.FC = () => {
             {filteredCategories.map((category) => (
               <Link
                 key={category._id}
-                href={`/categories/${category.name.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}
+                href={`/categories/${category.name.replace(/\s+/g, '-').replace(/\(|\)/g, '')}?id=${category._id}`}
                 className="bg-white rounded-xl overflow-hidden hover:bg-[#FF5F1F]/10 transition-all duration-300 transform hover:scale-105 border border-gray-300 hover:border-[#FF5F1F]/50 cursor-pointer block group"
               >
                 {/* Category Image */}

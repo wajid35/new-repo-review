@@ -495,7 +495,7 @@ const ProductDetailPage: React.FC = () => {
                 </div>
 
                 {/* PRODUCT INFO SECTION */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 justify-center items-start">
                     <div className="lg:col-span-4">
                         <div className="relative w-full h-64 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
                             {product.productPhotos && product.productPhotos.length > 0 ? (
@@ -525,6 +525,9 @@ const ProductDetailPage: React.FC = () => {
                             {product.productTitle}
                         </h1>
 
+                        <p className="text-sm text-gray-900 max-w-2xl leading-relaxed">{product.productDescription}</p>
+
+
                         <div className="space-y-3 max-w-md">
                             <a
                                 href={product.affiliateLink}
@@ -540,7 +543,7 @@ const ProductDetailPage: React.FC = () => {
                             </a>
                         </div>
 
-                        <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">{product.productDescription}</p>
+                        <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">ⓘ Conducting these analyses comes with expenses. If you choose to buy through my links, you’ll be helping keep this site running—at no additional cost to you. I may receive a small commission, and I truly appreciate your support!</p>
                     </div>
                 </div>
 

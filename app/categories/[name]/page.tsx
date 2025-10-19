@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { IProduct } from "@/models/post";
@@ -22,7 +22,6 @@ interface ICategoryData {
   faqs: IFaq[];
   createdAt: string;
   updatedAt: string;
-  __v: number;
 }
 
 // Helper function to create URL-friendly slug from product title
@@ -67,7 +66,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => {
               alt={product.productTitle}
               width={400}
               height={200}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-fit"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -161,7 +160,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => {
             rel="noopener noreferrer"
           >
             <ExternalLink size={18} />
-            <span>{product.affiliateLinkText}</span><span>{`USD ${product.productPrice}`}</span>
+            <span>{product.affiliateLinkText}</span>
+            <span>{`USD ${product.productPrice}`}</span>
           </Link>
         </div>
       </div>
@@ -170,9 +170,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => {
 };
 
 const CategoryProducts: React.FC = () => {
-  const params = useParams();
-  const rawCategory = decodeURIComponent(params?.name as string || "");
-  const categoryName = rawCategory.replace(/-/g, " ");
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get('id');
 
   const [products, setProducts] = useState<IProduct[]>([]);
   const [categoryData, setCategoryData] = useState<ICategoryData | null>(null);
@@ -194,46 +193,75 @@ const CategoryProducts: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('🔍 Starting fetchData...');
+      console.log('📌 Category ID from URL:', categoryId);
+
+      if (!categoryId) {
+        console.error('❌ No category ID found in URL');
+        setError('Category ID is required');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
-        const productResponse = await fetch("/api/auth/post");
-        if (!productResponse.ok) throw new Error("Failed to fetch products");
-        const productData = await productResponse.json();
-        setProducts(productData);
+        const apiUrl = `/api/categories/categoryproducts/${categoryId}`;
+        console.log('🌐 Fetching from:', apiUrl);
 
-        const categoryResponse = await fetch(
-          `/api/categories?name=${encodeURIComponent(categoryName)}`
-        );
-        if (!categoryResponse.ok)
-          throw new Error("Failed to fetch category data");
+        // Fetch category with products using the API
+        const response = await fetch(apiUrl);
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response ok:', response.ok);
 
-        const categoryJson = await categoryResponse.json();
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Response not OK. Status:', response.status);
+          console.error('❌ Error text:', errorText);
+          throw new Error(`Failed to fetch category data: ${response.status} - ${errorText}`);
+        }
 
-        if (categoryJson && categoryJson.data && categoryJson.data.length > 0) {
-          const data = categoryJson.data[0];
-          setCategoryData(data as ICategoryData);
+        const result = await response.json();
+        console.log('✅ Full API Response:', result);
+
+        if (result.success) {
+          console.log('✅ Success! Category Data:', result.data.category);
+          console.log('✅ Products Count:', result.data.products.length);
+          console.log('✅ Products:', result.data.products);
+          console.log('✅ FAQs:', result.data.category.faqs);
+
+          setCategoryData(result.data.category);
+          setProducts(result.data.products);
         } else {
-          setCategoryData(null);
+          console.error('❌ API returned success: false');
+          console.error('❌ Error message:', result.error);
+          throw new Error(result.error || "Failed to fetch data");
         }
 
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-        console.error("Fetch error:", err);
+        const errorMessage = err instanceof Error ? err.message : "An error occurred";
+        console.error('❌ Catch block error:', err);
+        console.error('❌ Error message:', errorMessage);
+        setError(errorMessage);
       } finally {
         setLoading(false);
+        console.log('🏁 Fetch completed');
       }
     };
+
     fetchData();
-  }, [categoryName]);
+  }, [categoryId]);
+
+  console.log('🔢 Total products before filtering:', products.length);
+  console.log('🔢 Products array:', products);
 
   const filtered = products
-    .filter(
-      (p) =>
-        p.category?.toLowerCase() === categoryName.toLowerCase() &&
-        typeof p.productRank === "number"
-    )
+    .filter((p) => {
+      const hasRank = typeof p.productRank === "number";
+      console.log(`Product "${p.productTitle}" - Has Rank: ${hasRank}, Rank: ${p.productRank}`);
+      return hasRank;
+    })
     .sort((a, b) => {
       if (sortBy === 'rank') {
         return (b.productRank ?? 0) - (a.productRank ?? 0);
@@ -247,125 +275,150 @@ const CategoryProducts: React.FC = () => {
       return 0;
     });
 
+  console.log('✅ Filtered products count:', filtered.length);
+  console.log('✅ Filtered products:', filtered);
+
   const faqs = categoryData?.faqs || [];
+  console.log('📋 FAQs count:', faqs.length);
 
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-black mb-2">
-            {categoryName} <span className="text-[#FF5F1F]">Products</span>
-          </h1>
-          <p className="text-gray-600">
-            Showing {filtered.length} products ranked based on reddit reviews
-          </p>
-        </div>
-
-        {/* Filter Buttons */}
-        {!loading && !error && filtered.length > 0 && (
-          <div className="mb-6 flex flex-wrap gap-3">
-            <button
-              onClick={() => setSortBy('rank')}
-              className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'rank'
-                ? 'bg-[#FF5F1F] text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Sort by Rank
-            </button>
-            <button
-              onClick={() => setSortBy('positive')}
-              className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'positive'
-                ? 'bg-[#FF5F1F] text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Sort by Positive Reviews
-            </button>
-            <button
-              onClick={() => setSortBy('price')}
-              className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'price'
-                ? 'bg-[#FF5F1F] text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Sort by Price (Low to High)
-            </button>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-16">
+            <div className="text-[#FF5F1F] text-xl">Loading category data...</div>
           </div>
         )}
 
-        {/* Error/Loading */}
-        {loading ? (
-          <div className="text-center text-black py-16">Loading...</div>
-        ) : error ? (
-          <div className="text-center text-red-500 py-16">{error}</div>
-        ) : filtered.length === 0 ? (
+        {/* Error State */}
+        {error && !loading && (
           <div className="text-center py-16">
-            <div className="text-6xl mb-4">🔍</div>
-            <h2 className="text-2xl font-bold text-black mb-2">
-              No Products Found
-            </h2>
-            <p className="text-gray-600 mb-6">
-              No products found for this category.
-            </p>
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
+            <p className="text-gray-600">{error}</p>
           </div>
-        ) : (
+        )}
+
+        {/* Content */}
+        {!loading && !error && (
           <>
-            {/* Horizontal Scrollable Product Cards Section */}
-            <div className="relative mb-12">
-              {filtered.length > 3 && (
-                <button
-                  onClick={() => scroll('left')}
-                  className="absolute left-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
-                  aria-label="Scroll Left"
-                >
-                  <ChevronLeft size={24} className="text-black" />
-                </button>
-              )}
-
-              <div
-                ref={scrollContainerRef}
-                className="flex space-x-6 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-              >
-                {filtered.map((product, idx) => (
-                  <ProductCard product={product} idx={idx} key={product._id?.toString()} />
-                ))}
-              </div>
-
-              {filtered.length > 3 && (
-                <button
-                  onClick={() => scroll('right')}
-                  className="absolute right-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
-                  aria-label="Scroll Right"
-                >
-                  <ChevronRight size={24} className="text-black" />
-                </button>
-              )}
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold text-black mb-2">
+                {categoryData?.name || 'Category'} <span className="text-[#FF5F1F]">Products</span>
+              </h1>
+              <p className="text-gray-600">
+                Showing {filtered.length} products ranked based on reddit reviews
+              </p>
             </div>
 
-            {/* FAQs Section */}
-            {faqs.length > 0 && (
-              <div className="mt-12 pt-8 border-t border-gray-200">
-                <h2 className="text-3xl font-bold text-black mb-6 text-center">
-                  Frequently Asked Questions (FAQs)
-                </h2>
-                <div className="space-y-4 max-w-4xl mx-auto">
-                  {faqs.map((faq, index) => (
-                    <div
-                      key={faq._id || index}
-                      className="border border-gray-200 rounded-lg shadow-sm overflow-hidden"
-                    >
-                      <h3 className="p-4 bg-gray-50 text-lg font-semibold text-black">
-                        {faq.question}
-                      </h3>
-                      <div className="p-4 text-gray-700 border-t border-gray-100">
-                        <p>{faq.answer}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* Filter Buttons */}
+            {filtered.length > 0 && (
+              <div className="mb-6 flex flex-wrap gap-3">
+                <button
+                  onClick={() => setSortBy('rank')}
+                  className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'rank'
+                    ? 'bg-[#FF5F1F] text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Sort by Rank
+                </button>
+                <button
+                  onClick={() => setSortBy('positive')}
+                  className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'positive'
+                    ? 'bg-[#FF5F1F] text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Sort by Positive Reviews
+                </button>
+                <button
+                  onClick={() => setSortBy('price')}
+                  className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'price'
+                    ? 'bg-[#FF5F1F] text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  Sort by Price (Low to High)
+                </button>
               </div>
+            )}
+
+            {/* No Products Found */}
+            {filtered.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">🔍</div>
+                <h2 className="text-2xl font-bold text-black mb-2">
+                  No Products Found
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  No products found for this category.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Horizontal Scrollable Product Cards Section */}
+                <div className="relative mb-12">
+                  {filtered.length > 3 && (
+                    <button
+                      onClick={() => scroll('left')}
+                      className="absolute left-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
+                      aria-label="Scroll Left"
+                    >
+                      <ChevronLeft size={24} className="text-black" />
+                    </button>
+                  )}
+
+                  <div
+                    ref={scrollContainerRef}
+                    className="flex space-x-6 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+                  >
+                    {filtered.map((product, idx) => (
+                      <ProductCard product={product} idx={idx} key={product._id?.toString()} />
+                    ))}
+                  </div>
+
+                  {filtered.length > 3 && (
+                    <button
+                      onClick={() => scroll('right')}
+                      className="absolute right-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
+                      aria-label="Scroll Right"
+                    >
+                      <ChevronRight size={24} className="text-black" />
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  ⓘ Conducting these analyses comes with expenses. If you choose to buy through my links, you&lsquo;ll be helping keep this site running—at no additional cost to you. I may receive a small commission, and I truly appreciate your support!
+                </p>
+
+                {/* FAQs Section */}
+                {faqs.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-gray-200">
+                    <h2 className="text-3xl font-bold text-black mb-6 text-center">
+                      Frequently Asked Questions (FAQs)
+                    </h2>
+                    <div className="space-y-4 max-w-4xl mx-auto">
+                      {faqs.map((faq, index) => (
+                        <div
+                          key={faq._id || index}
+                          className="border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+                        >
+                          <h3 className="p-4 bg-gray-50 text-lg font-semibold text-black">
+                            {faq.question}
+                          </h3>
+                          <div className="p-4 text-gray-700 border-t border-gray-100">
+                            <p>{faq.answer}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

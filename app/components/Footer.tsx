@@ -30,7 +30,7 @@ const Footer = () => {
               <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
               <line x1={12} y1={22.08} x2={12} y2={12} />
             </svg>
-            <span className="text-[#FF5F1F] font-semibold text-lg">Reddit Reviews</span>
+            <span className="text-[#FF5F1F] font-semibold text-lg">RedditRevs</span>
           </div>
           <p className="text-sm text-black/70">
             Hand-picked resources <span className="text-[#FF5F1F]">♥</span> for Reddit product reviews.
@@ -49,7 +49,7 @@ const Footer = () => {
 
       {/* Bottom copyright */}
       <div className="text-center py-4 text-sm text-[#FF5F1F]/80">
-        © {new Date().getFullYear()} Reddit Reviews. All rights reserved.
+        © {new Date().getFullYear()} RedditRevs. All rights reserved.
       </div>
     </footer>
   );

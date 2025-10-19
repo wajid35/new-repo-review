@@ -1,85 +1,107 @@
 import React from 'react';
 import Navbar from '@/app/components/NavbarComponent';
 import Footer from '@/app/components/Footer';
-import { Shield, Lock, Eye, Database, UserCheck, Mail, Globe, AlertCircle } from 'lucide-react';
+import { Shield, Lock, Eye, Database, UserCheck, Mail, Globe, AlertCircle, FileText, ExternalLink, MessageSquare, Copyright } from 'lucide-react';
 
 export default function PrivacyPolicy() {
-    const lastUpdated = "September 29, 2025";
+    const lastUpdated = "October 18, 2025";
 
-    const sections = [
+    type SectionItem = {
+        text: string;
+        subtitle?: string;
+    };
+
+    type Section = {
+        icon: React.ReactNode;
+        title: string;
+        content: SectionItem[];
+    };
+
+    const sections: Section[] = [
         {
-            icon: <Database className="w-6 h-6" />,
-            title: "Information We Collect",
+            icon: <FileText className="w-6 h-6" />,
+            title: "Acceptance of Terms",
             content: [
                 {
-                    subtitle: "Personal Information",
-                    text: "We collect information you provide directly to us, including your name, email address, and any other information you choose to provide when you create an account, subscribe to our newsletter, or contact us."
-                },
-                {
-                    subtitle: "Usage Information",
-                    text: "We automatically collect certain information about your device and how you interact with our website, including your IP address, browser type, operating system, referring URLs, and pages viewed."
-                },
-                {
-                    subtitle: "Cookies and Tracking",
-                    text: "We use cookies and similar tracking technologies to collect information about your browsing activities and preferences. You can control cookies through your browser settings."
+                    text: "By browsing or using RedditRev.com, you acknowledge that you've read, understood, and accepted these Terms and Policies, including our Privacy Policy. If you do not agree with any section, please do not use this website."
                 }
             ]
         },
         {
             icon: <Eye className="w-6 h-6" />,
-            title: "How We Use Your Information",
+            title: "Purpose of This Website",
             content: [
                 {
-                    text: "We use the information we collect to provide, maintain, and improve our services, communicate with you, personalize your experience, analyze usage patterns, detect and prevent fraud, and comply with legal obligations."
+                    text: "RedditRev.com is committed to offering in-depth product reviews, comparisons, and buying guides to help users make smarter purchasing decisions. Some of our content may contain affiliate links, primarily from Amazon. Our aim is to deliver reliable, helpful, and unbiased information."
+                }
+            ]
+        },
+        {
+            icon: <ExternalLink className="w-6 h-6" />,
+            title: "Affiliate Disclosure",
+            content: [
+                {
+                    text: "RedditRev.com participates in the Amazon Associates Program. This means we may earn a small commission when you click on certain links and make a purchase at no extra cost to you. These commissions help keep the site running and allow us to continue creating valuable content."
+                }
+            ]
+        },
+        {
+            icon: <Database className="w-6 h-6" />,
+            title: "Review Process",
+            content: [
+                {
+                    text: "Our product reviews are the result of independent research, team analysis, and careful evaluation. We prioritize objectivity and transparency. However, we acknowledge that individual experiences may vary, and results are not guaranteed."
+                }
+            ]
+        },
+        {
+            icon: <MessageSquare className="w-6 h-6" />,
+            title: "User Contributions",
+            content: [
+                {
+                    text: "Visitors are welcome to leave comments and feedback across RedditRev.com. By engaging with the site, you agree to adhere to our Community Guidelines. We reserve the right to remove any content that violates these standards or is considered inappropriate."
+                }
+            ]
+        },
+        {
+            icon: <Copyright className="w-6 h-6" />,
+            title: "Copyright & Intellectual Property",
+            content: [
+                {
+                    text: "All materials published on RedditRev.com — including text, images, logos, and graphics — are protected by copyright and intellectual property laws. Reproduction, redistribution, or republishing of any content without prior written permission is strictly prohibited."
                 }
             ]
         },
         {
             icon: <Lock className="w-6 h-6" />,
-            title: "Data Security",
+            title: "Privacy Policy",
             content: [
                 {
-                    text: "We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet or electronic storage is 100% secure."
-                }
-            ]
-        },
-        {
-            icon: <Globe className="w-6 h-6" />,
-            title: "Information Sharing",
-            content: [
-                {
-                    subtitle: "Third-Party Services",
-                    text: "We may share your information with third-party service providers who perform services on our behalf, such as hosting, analytics, and customer support."
-                },
-                {
-                    subtitle: "Legal Requirements",
-                    text: "We may disclose your information if required by law or in response to valid requests by public authorities."
-                },
-                {
-                    subtitle: "Business Transfers",
-                    text: "In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction."
-                }
-            ]
-        },
-        {
-            icon: <UserCheck className="w-6 h-6" />,
-            title: "Your Rights",
-            content: [
-                {
-                    text: "You have the right to access, update, or delete your personal information. You can also object to or restrict certain processing of your data. To exercise these rights, please contact us using the information provided below."
-                },
-                {
-                    subtitle: "Data Retention",
-                    text: "We retain your personal information for as long as necessary to fulfill the purposes outlined in this policy, unless a longer retention period is required by law."
+                    text: "We value your privacy. Please review our Privacy Policy to understand how your personal information is collected, used, and protected. By continuing to use RedditRev.com, you are consenting to these practices."
                 }
             ]
         },
         {
             icon: <AlertCircle className="w-6 h-6" />,
-            title: "Children's Privacy",
+            title: "Disclaimers",
             content: [
                 {
-                    text: "Our services are not directed to children under the age of 13, and we do not knowingly collect personal information from children. If we become aware that we have collected information from a child, we will take steps to delete it."
+                    text: "RedditRev.com is not responsible for the content, accuracy, or availability of any third-party websites linked from our platform."
+                },
+                {
+                    text: "We do not endorse or guarantee the quality or reliability of any products or services linked through affiliate partnerships."
+                },
+                {
+                    text: "All content on RedditRev.com is provided for informational purposes only and should not be treated as professional advice. Always consult with a qualified expert for specific recommendations."
+                }
+            ]
+        },
+        {
+            icon: <Globe className="w-6 h-6" />,
+            title: "Updates to Terms and Policies",
+            content: [
+                {
+                    text: "We may update these Terms and Policies from time to time. All changes will be posted here on RedditRev.com. It's your responsibility to review this page periodically to stay informed of any updates."
                 }
             ]
         },
@@ -88,7 +110,7 @@ export default function PrivacyPolicy() {
             title: "Contact Us",
             content: [
                 {
-                    text: "If you have any questions about this Privacy Policy or our privacy practices, please contact us at privacy@yourwebsite.com or through our contact form."
+                    text: "Have questions, suggestions, or concerns? We'd love to hear from you. Email us at: contact@redditrev.com"
                 }
             ]
         }
@@ -107,10 +129,10 @@ export default function PrivacyPolicy() {
                             </div>
                         </div>
                         <h1 className="text-5xl font-bold text-black text-center mb-4">
-                            Privacy <span className="text-[#FF5F1F]">Policy</span>
+                            Terms & <span className="text-[#FF5F1F]">Policies</span>
                         </h1>
                         <p className="text-gray-700 text-center text-lg">
-                            Your privacy is important to us. Learn how we collect, use, and protect your information.
+                            Welcome to RedditRev.com. Please read through these terms and policies before using our site.
                         </p>
                         <p className="text-gray-500 text-center text-sm mt-4">
                             Last Updated: {lastUpdated}
@@ -123,7 +145,7 @@ export default function PrivacyPolicy() {
                     {/* Introduction */}
                     <div className="mb-12 p-6 bg-[#FF5F1F]/5 rounded-xl border border-[#FF5F1F]/30">
                         <p className="text-gray-800 leading-relaxed">
-                            This Privacy Policy describes how we collect, use, disclose, and protect your information when you use our website and services. By accessing or using our services, you agree to the terms of this Privacy Policy.
+                            We&apos;re glad you&apos;re here! Before you start exploring our content, please take a moment to read through the following terms and policies. By accessing or using RedditRev.com, you agree to abide by these guidelines. If you do not agree with any part of them, we kindly request that you discontinue using the site.
                         </p>
                     </div>
 
@@ -164,26 +186,18 @@ export default function PrivacyPolicy() {
                         ))}
                     </div>
 
-                    {/* Policy Updates */}
-                    <div className="mt-12 p-6 bg-gradient-to-r from-[#FF5F1F]/10 to-transparent rounded-xl border border-[#FF5F1F]/30">
-                        <h2 className="text-xl font-bold text-black mb-3 flex items-center gap-2">
-                            <AlertCircle className="w-5 h-5 text-[#FF5F1F]" />
-                            Changes to This Policy
-                        </h2>
-                        <p className="text-gray-800 leading-relaxed">
-                            We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last Updated&quot; date. We encourage you to review this Privacy Policy periodically for any changes.
-                        </p>
-                    </div>
-
                     {/* Footer CTA */}
                     <div className="mt-12 text-center">
                         <p className="text-gray-700 mb-6">
-                            Have questions about our privacy practices?
+                            Have questions, suggestions, or concerns?
                         </p>
-                        <button className="bg-[#FF5F1F] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#e85618] transition-colors inline-flex items-center gap-2">
+                        <a
+                            href="mailto:contact@redditrev.com"
+                            className="bg-[#FF5F1F] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#e85618] transition-colors inline-flex items-center gap-2"
+                        >
                             <Mail className="w-5 h-5" />
                             Contact Us
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
