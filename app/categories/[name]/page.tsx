@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { IProduct } from "@/models/post";
-import { BarChart3, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { BarChart3, ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
 
 // Define the type for the FAQ structure
 interface IFaq {
@@ -22,6 +22,25 @@ interface ICategoryData {
   faqs: IFaq[];
   createdAt: string;
   updatedAt: string;
+}
+
+// Define the type for Reddit reviews
+interface RedditReview {
+  comment: string;
+  tag: string;
+  link: string;
+  author: string;
+  subreddit: string;
+}
+
+// Define the type for discussion in modal
+interface Discussion {
+  subreddit: string;
+  title: string;
+  url: string;
+  author: string;
+  tag: string;
+  productTitle: string;
 }
 
 // Helper function to create URL-friendly slug from product title
@@ -183,6 +202,8 @@ const CategoryProducts: React.FC = () => {
   const [maxPrice, setMaxPrice] = useState<string>('');
   // State to control the visibility of the price inputs
   const [showPriceFilter, setShowPriceFilter] = useState<boolean>(false);
+  // State for reviews modal
+  const [showReviewsModal, setShowReviewsModal] = useState<boolean>(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -303,10 +324,24 @@ const CategoryProducts: React.FC = () => {
   const handleClearFilter = () => {
     setMinPrice('');
     setMaxPrice('');
-    // Optionally close the filter inputs
-    // setShowPriceFilter(false); 
   };
 
+  // Collect all Reddit reviews from all products
+  const allDiscussions: Discussion[] = products.flatMap(product => 
+    ((product.redditReviews as RedditReview[]) || []).map(review => ({
+      subreddit: review.subreddit,
+      title: review.comment.substring(0, 100) + (review.comment.length > 100 ? '...' : ''),
+      url: review.link,
+      author: review.author,
+      tag: review.tag,
+      productTitle: product.productTitle
+    }))
+  );
+
+  // Count total redditors (unique authors)
+  const uniqueAuthors = new Set(allDiscussions.map(d => d.author)).size;
+  const totalRedditors = uniqueAuthors;
+  const totalDiscussions = allDiscussions.length;
 
   return (
     <div className="bg-white min-h-screen">
@@ -314,7 +349,7 @@ const CategoryProducts: React.FC = () => {
         {/* Loading State */}
         {loading && (
           <div className="text-center py-16">
-            <div className="text-[#FF5F1F] text-xl">Loading category data...</div>
+            <div className="text-[#FF5F1F] text-xl"></div>
           </div>
         )}
 
@@ -335,13 +370,96 @@ const CategoryProducts: React.FC = () => {
               <h1 className="text-4xl font-bold text-black mb-2">
                 {categoryData?.name || 'Category'} <span className="text-[#FF5F1F]">Products</span>
               </h1>
+              
+              {/* Reviews Summary Section */}
+              {allDiscussions.length > 0 && (
+                <div className="mt-4 mb-4">
+                  <p className="text-sm text-gray-700 font-medium mb-2">
+                    Based on reviews from {totalRedditors} Redditors
+                  </p>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-gray-800 mb-2">
+                      {totalDiscussions} discussions analyzed:
+                    </p>
+                    <div className="space-y-1 max-h-24 overflow-y-auto">
+                      {allDiscussions.slice(0, 3).map((discussion, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-gray-400 mt-0.5">◉</span>
+                          <span className="line-clamp-1">r/{discussion.subreddit}: {discussion.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {allDiscussions.length > 3 && (
+                      <button
+                        onClick={() => setShowReviewsModal(true)}
+                        className="text-[#FF5F1F] hover:text-[#FF5F1F]/80 text-sm font-medium mt-2 flex items-center gap-1 cursor-pointer"
+                      >
+                        → View all
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <p className="text-gray-600">
                 Showing {filtered.length} products ranked based on reddit reviews
               </p>
             </div>
 
+            {/* Reviews Modal */}
+            {showReviewsModal && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h2 className="text-2xl font-bold text-black">All discussions:</h2>
+                    <button
+                      onClick={() => setShowReviewsModal(false)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                      aria-label="Close modal"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+                  
+                  {/* Modal Content */}
+                  <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
+                    <div className="space-y-3">
+                      {allDiscussions.map((discussion, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-sm text-gray-700 hover:bg-gray-50 p-2 rounded transition-colors">
+                          <span className="text-gray-400 mt-1">◉</span>
+                          <div className="flex-1">
+                            <a
+                              href={discussion.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-[#FF5F1F] transition-colors block"
+                            >
+                              <span className="font-medium">r/{discussion.subreddit}</span>: {discussion.title}
+                            </a>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <span className={`text-xs px-2 py-0.5 rounded ${
+                                discussion.tag === 'positive' ? 'bg-green-100 text-green-700' :
+                                discussion.tag === 'negative' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {discussion.tag}
+                              </span>
+                              <span className="text-xs text-gray-500">by u/{discussion.author}</span>
+                              <span className="text-xs text-gray-400">•</span>
+                              <span className="text-xs text-gray-500">{discussion.productTitle}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Filter and Sort Controls */}
-            {products.length > 0 && ( // Use original products array length to show controls
+            {products.length > 0 && (
               <div className="mb-6">
                 {/* Sort Buttons & New Filter Button */}
                 <div className="flex flex-wrap gap-3 mb-4">
@@ -475,7 +593,7 @@ const CategoryProducts: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  ⓘ Conducting these analyses comes with expenses. If you choose to buy through my links, you&lsquo;ll be helping keep this site running—at no additional cost to you. I may receive a small commission, and I truly appreciate your support!
+                  ⓘ Conducting these analyses comes with expenses. If you choose to buy through my links, you&apos;ll be helping keep this site running—at no additional cost to you. I may receive a small commission, and I truly appreciate your support!
                 </p>
 
                 {/* FAQs Section */}

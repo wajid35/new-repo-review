@@ -63,7 +63,7 @@ const CategoriesGrid: React.FC = () => {
       <div className="bg-white min-h-screen">
         <div className="max-w-7xl mx-auto p-6">
           <div className="flex justify-center items-center h-64">
-            <div className="text-[#FF5F1F] text-xl">Loading categories...</div>
+            <div className="text-[#FF5F1F] text-xl"></div>
           </div>
         </div>
       </div>
