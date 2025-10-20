@@ -178,6 +178,11 @@ const CategoryProducts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'rank' | 'price' | 'positive'>('rank');
+  // State for custom price filter
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+  // State to control the visibility of the price inputs
+  const [showPriceFilter, setShowPriceFilter] = useState<boolean>(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -253,21 +258,34 @@ const CategoryProducts: React.FC = () => {
     fetchData();
   }, [categoryId]);
 
-  console.log('🔢 Total products before filtering:', products.length);
-  console.log('🔢 Products array:', products);
+  // Helper function to safely parse the product price as a number
+  const getProductPrice = (priceString: string | undefined): number => {
+    // Strips out non-numeric characters except for the decimal point
+    const cleanPrice = priceString?.replace(/[^0-9.]/g, '') || '0';
+    return parseFloat(cleanPrice);
+  };
 
   const filtered = products
     .filter((p) => {
       const hasRank = typeof p.productRank === "number";
-      console.log(`Product "${p.productTitle}" - Has Rank: ${hasRank}, Rank: ${p.productRank}`);
-      return hasRank;
+      // Price Filter Logic
+      const productPrice = getProductPrice(p.productPrice);
+      // Min price is 0 if input is empty
+      const min = minPrice ? parseFloat(minPrice) : 0;
+      // Max price is effectively infinity if input is empty
+      const max = maxPrice ? parseFloat(maxPrice) : Number.MAX_SAFE_INTEGER;
+      
+      const passesPriceFilter = productPrice >= min && productPrice <= max;
+
+      // Filter: Must have a rank AND must pass the custom price filter
+      return hasRank && passesPriceFilter;
     })
     .sort((a, b) => {
       if (sortBy === 'rank') {
         return (b.productRank ?? 0) - (a.productRank ?? 0);
       } else if (sortBy === 'price') {
-        const priceA = parseFloat(a.productPrice?.replace(/[^0-9.]/g, '') || '0');
-        const priceB = parseFloat(b.productPrice?.replace(/[^0-9.]/g, '') || '0');
+        const priceA = getProductPrice(a.productPrice);
+        const priceB = getProductPrice(b.productPrice);
         return priceA - priceB;
       } else if (sortBy === 'positive') {
         return (b.positiveReviewPercentage ?? 0) - (a.positiveReviewPercentage ?? 0);
@@ -280,6 +298,15 @@ const CategoryProducts: React.FC = () => {
 
   const faqs = categoryData?.faqs || [];
   console.log('📋 FAQs count:', faqs.length);
+
+  // Function to handle clearing the filter and closing the inputs
+  const handleClearFilter = () => {
+    setMinPrice('');
+    setMaxPrice('');
+    // Optionally close the filter inputs
+    // setShowPriceFilter(false); 
+  };
+
 
   return (
     <div className="bg-white min-h-screen">
@@ -313,36 +340,89 @@ const CategoryProducts: React.FC = () => {
               </p>
             </div>
 
-            {/* Filter Buttons */}
-            {filtered.length > 0 && (
-              <div className="mb-6 flex flex-wrap gap-3">
-                <button
-                  onClick={() => setSortBy('rank')}
-                  className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'rank'
-                    ? 'bg-[#FF5F1F] text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                  Sort by Rank
-                </button>
-                <button
-                  onClick={() => setSortBy('positive')}
-                  className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'positive'
-                    ? 'bg-[#FF5F1F] text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                  Sort by Positive Reviews
-                </button>
-                <button
-                  onClick={() => setSortBy('price')}
-                  className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'price'
-                    ? 'bg-[#FF5F1F] text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                  Sort by Price (Low to High)
-                </button>
+            {/* Filter and Sort Controls */}
+            {products.length > 0 && ( // Use original products array length to show controls
+              <div className="mb-6">
+                {/* Sort Buttons & New Filter Button */}
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <button
+                    onClick={() => { setSortBy('rank'); setShowPriceFilter(false); }}
+                    className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'rank' && !showPriceFilter
+                      ? 'bg-[#FF5F1F] text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                  >
+                    Sort by Rank
+                  </button>
+                  <button
+                    onClick={() => { setSortBy('positive'); setShowPriceFilter(false); }}
+                    className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'positive' && !showPriceFilter
+                      ? 'bg-[#FF5F1F] text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                  >
+                    Sort by Positive Reviews
+                  </button>
+                  <button
+                    onClick={() => { setSortBy('price'); setShowPriceFilter(false); }}
+                    className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all ${sortBy === 'price' && !showPriceFilter
+                      ? 'bg-[#FF5F1F] text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                  >
+                    Sort by Price (Low to High)
+                  </button>
+                  
+                  {/* Custom Price Filter Toggle Button */}
+                  <button
+                    onClick={() => setShowPriceFilter(prev => !prev)}
+                    className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all flex items-center gap-2 ${showPriceFilter || minPrice || maxPrice
+                        ? 'bg-[#FF5F1F] text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                  >
+                    {showPriceFilter ? 'Close Price Filter' : 'Filter by Price'}
+                    {(minPrice || maxPrice) && (
+                      <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-white/30 font-bold">
+                        Active
+                      </span>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Price Filter Inputs (Conditional Display) */}
+                {showPriceFilter && (
+                  <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 max-w-lg transition-all duration-300">
+                    <h3 className="text-md font-semibold mb-3 text-black">Set Price Range (USD)</h3>
+                    <div className="flex gap-4 items-center flex-wrap">
+                      <input
+                        type="number"
+                        placeholder="Minimum Price"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg focus:ring-[#FF5F1F] focus:border-[#FF5F1F] transition-all"
+                        min="0"
+                        aria-label="Minimum Price"
+                      />
+                      <span className="text-gray-500 hidden sm:block">-</span>
+                      <input
+                        type="number"
+                        placeholder="Maximum Price"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg focus:ring-[#FF5F1F] focus:border-[#FF5F1F] transition-all"
+                        min="0"
+                        aria-label="Maximum Price"
+                      />
+                      <button
+                          onClick={handleClearFilter}
+                          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors font-medium w-full sm:w-auto"
+                      >
+                          Clear Filter
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -354,7 +434,10 @@ const CategoryProducts: React.FC = () => {
                   No Products Found
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  No products found for this category.
+                  {minPrice || maxPrice 
+                    ? `No products found within the specified price range.`
+                    : 'No products found for this category.'
+                  }
                 </p>
               </div>
             ) : (
@@ -364,7 +447,7 @@ const CategoryProducts: React.FC = () => {
                   {filtered.length > 3 && (
                     <button
                       onClick={() => scroll('left')}
-                      className="absolute left-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
+                      className="absolute left-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors ml-2"
                       aria-label="Scroll Left"
                     >
                       <ChevronLeft size={24} className="text-black" />
@@ -383,7 +466,7 @@ const CategoryProducts: React.FC = () => {
                   {filtered.length > 3 && (
                     <button
                       onClick={() => scroll('right')}
-                      className="absolute right-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors hidden md:block"
+                      className="absolute right-0 top-1/2 cursor-pointer -translate-y-1/2 bg-white p-2 rounded-full shadow-lg z-20 border border-gray-300 hover:bg-gray-100 transition-colors mr-2"
                       aria-label="Scroll Right"
                     >
                       <ChevronRight size={24} className="text-black" />
