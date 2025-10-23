@@ -12,9 +12,20 @@ const Footer = () => {
         <div className="flex flex-col items-center md:items-start gap-2">
           <div className="flex items-center gap-2">
             {/* Logo */}
-                          <Link href="/">
-             <Image src="/logo.png" alt="Logo" width={30} height={30} className="h-9 w-auto" />
-                              </Link>
+                          <Link href="/"> 
+           <div className="flex items-center gap-2">
+             <Image 
+               src="/Transparent.png" 
+               alt="Logo" 
+               width={36} 
+               height={36} 
+               className="h-14 w-35" 
+               quality={100}
+               priority
+             />
+              {/* <span className="text-[#FF5F1F] font-bold text-xl">RedditRevs</span> */} 
+              </div>
+               </Link>
             {/* <span className="text-[#FF5F1F] font-semibold text-lg">RedditRevs</span> */}
           </div>
           <p className="text-sm text-black/70">

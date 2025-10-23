@@ -24,9 +24,17 @@ export default function Navbar() {
             <div className="flex items-center justify-between p-2 px-4 md:pr-2">
 
               {/* Left: Logo */}
-           <Link href="/"> 
+          <Link href="/"> 
            <div className="flex items-center gap-2">
-             <Image src="/logo.png" alt="Logo" width={30} height={30} className="h-9 w-auto" />
+             <Image 
+               src="/Transparent.png" 
+               alt="Logo" 
+               width={36} 
+               height={36} 
+               className="h-14 w-35" 
+               quality={100}
+               priority
+             />
               {/* <span className="text-[#FF5F1F] font-bold text-xl">RedditRevs</span> */} 
               </div>
                </Link>
