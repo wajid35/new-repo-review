@@ -8,6 +8,7 @@ import { IProduct } from "@/models/post";
 import { ExternalLink } from "lucide-react";
 import Navbar from "@/app/components/NavbarComponent";
 import Footer from "@/app/components/Footer";
+import Loader from "@/app/components/Loader";
 
 // --- New Type Definitions for Category Data and FAQs ---
 interface IFaq {
@@ -130,7 +131,11 @@ const CategoryProducts: React.FC = () => {
 
         {/* Error/Loading */}
         {loading ? (
-          <div className="text-center text-black py-16">Loading...</div>
+<div className="flex items-center justify-center h-screen">
+  <div className="text-[#FF5F1F] text-xl">
+    <Loader />
+  </div>
+</div>
         ) : error ? (
           <div className="text-center text-red-500 py-16">{error}</div>
         ) : filtered.length === 0 ? (

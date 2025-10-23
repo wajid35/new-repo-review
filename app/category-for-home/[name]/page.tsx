@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { IProduct } from "@/models/post";
 import { BarChart3, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import Loader from "@/app/components/Loader";
 
 // Define the type for the FAQ structure
 interface IFaq {
@@ -245,7 +246,7 @@ const CategoryProducts: React.FC = () => {
 
         {/* Error/Loading */}
         {loading ? (
-          <div className="text-center text-black py-16">Loading...</div>
+          <div className="text-center text-black py-16"><Loader /></div>
         ) : error ? (
           <div className="text-center text-red-500 py-16">{error}</div>
         ) : filtered.length === 0 ? (

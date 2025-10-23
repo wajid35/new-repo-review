@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { IProduct } from "@/models/post";
 import { BarChart3, ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
+import Loader from "@/app/components/Loader";
 
 // Define the type for the FAQ structure
 interface IFaq {
@@ -348,9 +349,12 @@ const CategoryProducts: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6">
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-16">
-            <div className="text-[#FF5F1F] text-xl"></div>
-          </div>
+         <div className="flex items-center justify-center h-screen">
+  <div className="text-[#FF5F1F] text-xl">
+    <Loader />
+  </div>
+</div>
+
         )}
 
         {/* Error State */}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -16,38 +17,20 @@ export default function Navbar() {
   const [isOpen, setisOpen] = useState(false);
   return (
     <>
-      <section className="py-4 lg:py-8 fixed w-full top-0 backdrop-blur z-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-white border border-[#FF5F1F]/30 text-[#FF5F1F] rounded-[27px] md:rounded-full shadow-md">
+<section className="py-4 lg:py-8 fixed w-full top-0 bg-white z-50">
+  <div className="max-w-7xl mx-auto px-6">
+    <div className="bg-white/80 border border-[#FF5F1F]/30 text-[#FF5F1F] rounded-[27px] md:rounded-full shadow-md">
+
             <div className="flex items-center justify-between p-2 px-4 md:pr-2">
 
               {/* Left: Logo */}
-              <Link href="/">
-                <div className="flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width={24}
-                    height={24}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="feather feather-codesandbox text-[#FF5F1F] h-9 w-auto"
-                  >
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    <polyline points="7.5 4.21 12 6.81 16.5 4.21" />
-                    <polyline points="7.5 19.79 7.5 14.6 3 12" />
-                    <polyline points="21 12 16.5 14.6 16.5 19.79" />
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                    <line x1={12} y1={22.08} x2={12} y2={12} />
-                    <line x1={12} y1={22.08} x2={12} y2={12} />
-                    <line x1={12} y1={22.08} x2={12} y2={12} />
-                  </svg>
-                  <span className="text-[#FF5F1F] font-bold text-xl">RedditRevs</span>
-                </div>
-              </Link>
+           <Link href="/"> 
+           <div className="flex items-center gap-2">
+             <Image src="/logo.png" alt="Logo" width={30} height={30} className="h-9 w-auto" />
+              {/* <span className="text-[#FF5F1F] font-bold text-xl">RedditRevs</span> */} 
+              </div>
+               </Link>
+
 
               {/* Middle: Nav Links */}
               <nav className="hidden lg:flex gap-6 font-medium text-black">

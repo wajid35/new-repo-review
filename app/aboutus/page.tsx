@@ -3,6 +3,7 @@
 import React from 'react';
 import Navbar from '@/app/components/NavbarComponent';
 import Footer from '@/app/components/Footer';
+import Link from 'next/link';
 
 const AboutUsPage: React.FC = () => {
   const stats = [
@@ -192,8 +193,8 @@ const AboutUsPage: React.FC = () => {
             </div>
 
             <div className="mt-8">
-              <a
-                href="#"
+              <Link
+                href="/"
                 className="inline-flex items-center justify-center px-8 py-4 rounded-full font-bold text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                 style={{
                   backgroundColor: '#FF5F1F',
@@ -209,7 +210,7 @@ const AboutUsPage: React.FC = () => {
                 }}
               >
                 Start Exploring Products
-              </a>
+              </Link>
             </div>
           </div>
         </div>

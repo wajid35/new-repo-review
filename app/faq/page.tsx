@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Navbar from '@/app/components/NavbarComponent';
 import Footer from '@/app/components/Footer';
+import Link from 'next/link';
 
 interface FAQItem {
   question: string;
@@ -202,8 +203,8 @@ const FAQPage: React.FC = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                  href="#"
+                <Link
+                  href="/"
                   className="group relative inline-flex items-center justify-center px-8 py-4 rounded-full font-bold text-white overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105"
                   style={{
                     backgroundColor: "#FF5F1F",
@@ -221,11 +222,13 @@ const FAQPage: React.FC = () => {
                   }}
                 >
                   <span className="relative z-10">Explore Platform</span>
-                </a>
+                </Link>
 
-                <button className="inline-flex items-center justify-center px-8 py-4 bg-[#FF5F1F05] border border-[#FF5F1F30] rounded-full font-semibold text-gray-900 hover:bg-[#FF5F1F10] hover:border-[#FF5F1F50] transition-all duration-300">
+               <Link href="/categories">
+                <button className="inline-flex cursor-pointer items-center justify-center px-8 py-4 bg-[#FF5F1F05] border border-[#FF5F1F30] rounded-full font-semibold text-gray-900 hover:bg-[#FF5F1F10] hover:border-[#FF5F1F50] transition-all duration-300">
                   Browse Categories
                 </button>
+                </Link>
               </div>
             </div>
           </div>
