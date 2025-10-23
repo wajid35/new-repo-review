@@ -96,11 +96,11 @@ const CategoriesGrid: React.FC = () => {
 
   if (loading) {
     return (
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-[#FF5F1F] text-xl"></div>
-          </div>
-        </div>
+       <div className="flex items-center justify-center h-screen">
+  <div className="text-[#FF5F1F] text-xl">
+    <Loader />
+  </div>
+</div>
     );
   }
 
