@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { X, Star, MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
+import { X, Star, MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Loader2, Plus } from 'lucide-react';
 import axios from 'axios';
 import FileUpload from "@/app/components/FileUpload";
 
@@ -23,13 +23,17 @@ interface LikesDislikesData {
     dislikes: LikeDislikePoint[];
 }
 
+interface AffiliateButton {
+    link: string;
+    text: string;
+}
+
 interface ProductFormData {
     productTitle: string;
     productDescription: string;
     productPhotos: string[];
     productPrice: string;
-    affiliateLink: string;
-    affiliateLinkText: string;
+    affiliateButtons: AffiliateButton[];
     redditReviews: RedditReview[];
     productScore: number;
     category: string;
@@ -50,8 +54,7 @@ interface ValidationErrors {
     productDescription?: string;
     productPhotos?: string;
     productPrice?: string;
-    affiliateLink?: string;
-    affiliateLinkText?: string;
+    affiliateButtons?: string;
     redditReviews?: string;
     productScore?: string;
     category?: string;
@@ -69,8 +72,7 @@ const ProductPostForm: React.FC = () => {
         productDescription: '',
         productPhotos: [],
         productPrice: '',
-        affiliateLink: '',
-        affiliateLinkText: '',
+        affiliateButtons: [{ link: '', text: '' }],
         redditReviews: [],
         productScore: 50,
         category: '',
@@ -98,6 +100,34 @@ const ProductPostForm: React.FC = () => {
         const eKey = field as unknown as keyof ValidationErrors;
         if (errors[eKey]) {
             setErrors(prev => ({ ...prev, [eKey]: undefined }));
+        }
+    };
+
+    const addAffiliateButton = () => {
+        setFormData(prev => ({
+            ...prev,
+            affiliateButtons: [...prev.affiliateButtons, { link: '', text: '' }]
+        }));
+    };
+
+    const removeAffiliateButton = (index: number) => {
+        if (formData.affiliateButtons.length > 1) {
+            setFormData(prev => ({
+                ...prev,
+                affiliateButtons: prev.affiliateButtons.filter((_, i) => i !== index)
+            }));
+        }
+    };
+
+    const updateAffiliateButton = (index: number, field: 'link' | 'text', value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            affiliateButtons: prev.affiliateButtons.map((btn, i) =>
+                i === index ? { ...btn, [field]: value } : btn
+            )
+        }));
+        if (errors.affiliateButtons) {
+            setErrors(prev => ({ ...prev, affiliateButtons: undefined }));
         }
     };
 
@@ -194,20 +224,31 @@ const ProductPostForm: React.FC = () => {
             newErrors.productPrice = 'Please enter a valid price (e.g., $99.99 or 99.99)';
         }
 
-        if (!formData.affiliateLink.trim()) {
-            newErrors.affiliateLink = 'Affiliate link is required';
+        // Validate affiliate buttons
+        const validButtons = formData.affiliateButtons.filter(btn => btn.link.trim() || btn.text.trim());
+        if (validButtons.length === 0) {
+            newErrors.affiliateButtons = 'At least one affiliate button is required';
         } else {
-            try {
-                new URL(formData.affiliateLink);
-            } catch {
-                newErrors.affiliateLink = 'Please enter a valid URL';
+            for (const btn of validButtons) {
+                if (!btn.link.trim()) {
+                    newErrors.affiliateButtons = 'All affiliate buttons must have a link';
+                    break;
+                }
+                if (!btn.text.trim()) {
+                    newErrors.affiliateButtons = 'All affiliate buttons must have text';
+                    break;
+                }
+                try {
+                    new URL(btn.link);
+                } catch {
+                    newErrors.affiliateButtons = 'All affiliate links must be valid URLs';
+                    break;
+                }
+                if (btn.text.length > 50) {
+                    newErrors.affiliateButtons = 'Affiliate button text must be less than 50 characters';
+                    break;
+                }
             }
-        }
-
-        if (!formData.affiliateLinkText.trim()) {
-            newErrors.affiliateLinkText = 'Affiliate link text is required';
-        } else if (formData.affiliateLinkText.length > 50) {
-            newErrors.affiliateLinkText = 'Affiliate link text must be less than 50 characters';
         }
 
         if (redditReviewsInput.trim()) {
@@ -305,9 +346,16 @@ const ProductPostForm: React.FC = () => {
             if (redditReviewsInput.trim()) {
                 redditReviews = JSON.parse(redditReviewsInput);
             }
+            
+            // Filter out empty affiliate buttons
+            const validAffiliateButtons = formData.affiliateButtons.filter(
+                btn => btn.link.trim() && btn.text.trim()
+            );
+
             const cleanedData = {
                 ...formData,
                 productPhotos: formData.productPhotos.filter(photo => photo.trim() !== ''),
+                affiliateButtons: validAffiliateButtons,
                 redditReviews
             };
 
@@ -324,8 +372,7 @@ const ProductPostForm: React.FC = () => {
                     productDescription: '',
                     productPhotos: [],
                     productPrice: '',
-                    affiliateLink: '',
-                    affiliateLinkText: '',
+                    affiliateButtons: [{ link: '', text: '' }],
                     redditReviews: [],
                     category: '',
                     productScore: 50,
@@ -454,7 +501,7 @@ const ProductPostForm: React.FC = () => {
 
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-4">
-                        Product Photos (Max 5)
+                        Product Photo
                     </label>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {Array.from({ length: 1 }, (_, index) => (
@@ -515,33 +562,66 @@ const ProductPostForm: React.FC = () => {
                     <ErrorMessage error={errors.productPrice} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Affiliate Link *
+                {/* Affiliate Buttons Section */}
+                <div>
+                    <div className="flex items-center justify-between mb-4">
+                        <label className="block text-sm font-semibold text-gray-700">
+                            Affiliate Buttons * (At least one required)
                         </label>
-                        <input
-                            type="url"
-                            value={formData.affiliateLink}
-                            onChange={(e) => handleInputChange('affiliateLink', e.target.value)}
-                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.affiliateLink ? 'border-red-500' : 'border-gray-300'}`}
-                            placeholder="https://example.com/affiliate-link"
-                        />
-                        <ErrorMessage error={errors.affiliateLink} />
+                        <button
+                            type="button"
+                            onClick={addAffiliateButton}
+                            className="flex items-center cursor-pointer gap-2 px-3 py-2 bg-[#FF5F1F] text-white rounded-lg hover:bg-[#FF5F1F] transition-colors text-sm"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Button
+                        </button>
                     </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Affiliate Link Text *
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.affiliateLinkText}
-                            onChange={(e) => handleInputChange('affiliateLinkText', e.target.value)}
-                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.affiliateLinkText ? 'border-red-500' : 'border-gray-300'}`}
-                            placeholder="Buy on Amazon"
-                        />
-                        <ErrorMessage error={errors.affiliateLinkText} />
+                    <div className="space-y-4">
+                        {formData.affiliateButtons.map((button, index) => (
+                            <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h4 className="text-sm font-medium text-gray-700">Button {index + 1}</h4>
+                                    {formData.affiliateButtons.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAffiliateButton(index)}
+                                            className="text-red-500 hover:text-red-700 transition-colors"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                            Link
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={button.link}
+                                            onChange={(e) => updateAffiliateButton(index, 'link', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all text-sm"
+                                            placeholder="https://example.com/affiliate-link"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                            Button Text
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={button.text}
+                                            onChange={(e) => updateAffiliateButton(index, 'text', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all text-sm"
+                                            placeholder="Buy on Amazon"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
+                    <ErrorMessage error={errors.affiliateButtons} />
                 </div>
 
                 <div>
@@ -559,13 +639,12 @@ const ProductPostForm: React.FC = () => {
                     <ErrorMessage error={errors.redditReviews} />
                 </div>
 
-                {/* Generate Likes and Dislikes Button */}
                 <div className="pt-4">
                     <button
                         type="button"
                         onClick={generateLikesAndDislikes}
                         disabled={!canGenerateLikesDislikes() || isGeneratingLikesDislikes}
-                        className="bg-purple-500 cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="bg-[#FF5F1F] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {isGeneratingLikesDislikes ? (
                             <>
@@ -582,13 +661,11 @@ const ProductPostForm: React.FC = () => {
                     </button>
                 </div>
 
-                {/* Display Generated Likes and Dislikes */}
                 {formData.likesAndDislikes && (
                     <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
                         <h3 className="text-xl font-bold text-gray-800 mb-4">Generated Likes & Dislikes</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Likes */}
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
                                     <ThumbsUp className="w-5 h-5 text-green-600" />
@@ -608,7 +685,6 @@ const ProductPostForm: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Dislikes */}
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
                                     <ThumbsDown className="w-5 h-5 text-red-600" />
@@ -661,7 +737,7 @@ const ProductPostForm: React.FC = () => {
                         onClick={() => {
                             calculateProductRank();
                         }}
-                        className="bg-blue-500 cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-all mb-2"
+                        className="bg-[#FF5F1F] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F] transition-all mb-2"
                     >
                         Generate Product Rank{typeof formData.productRank === 'number' ? `: ${formData.productRank}%` : ''}
                     </button>

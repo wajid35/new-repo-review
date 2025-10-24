@@ -5,8 +5,8 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ExternalLink, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
-import { IProduct } from '@/models/post';
+import { ExternalLink, ArrowLeft, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react'; // Added ShoppingCart icon
+import { IProduct } from '@/models/post'; // Ensure this IProduct has affiliateButtons: IAffiliateButton[]
 
 // --- Interface Definitions ---
 
@@ -28,8 +28,24 @@ interface IRedditReview {
     subreddit: string;
 }
 
-// --- NEW COMPONENT: LikesDislikesFeature ---
+// Ensure IAffiliateButton is defined or imported, assuming it's from '@/models/post'
+interface IAffiliateButton {
+    link: string;
+    text: string;
+}
 
+// NOTE: The main IProduct interface being used by the component needs to be updated 
+// to include the array structure for affiliate buttons if it isn't already.
+// Assuming the imported IProduct is correct, or defining a minimal version for context:
+interface UpdatedIProduct extends IProduct {
+    affiliateButtons: IAffiliateButton[];
+    affiliateLinkText?: string; // Removed 
+    affiliateLink?: string;
+    // Removed old singular fields if they existed, e.g., affiliateLink, affiliateLinkText
+}
+
+
+// --- NEW COMPONENT: LikesDislikesFeature (Remains the same) ---
 interface LikesDislikesFeatureProps {
     data: LikeDislikePoint[];
     type: 'like' | 'dislike';
@@ -79,7 +95,7 @@ const LikesDislikesFeature: React.FC<LikesDislikesFeatureProps> = ({ data, type 
     );
 };
 
-// --- NEW COMPONENT: ProductLikesDislikes ---
+// --- NEW COMPONENT: ProductLikesDislikes (Remains the same) ---
 
 interface ProductLikesDislikesProps {
     likesAndDislikes: LikesDislikesData;
@@ -101,7 +117,8 @@ const ProductLikesDislikes: React.FC<ProductLikesDislikesProps> = ({ likesAndDis
     );
 };
 
-// --- Existing Components ---
+// --- Existing Components (RedditReviewCard and ReviewProgressBars remain the same) ---
+// ... (RedditReviewCard and ReviewProgressBars JSX and logic are unchanged)
 
 const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
     const [showFullText, setShowFullText] = useState(false);
@@ -262,7 +279,8 @@ const ProductDetailPage: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: session } = useSession();
-    const [product, setProduct] = useState<IProduct | null>(null);
+    // Update state to use the array structure for affiliate buttons
+    const [product, setProduct] = useState<UpdatedIProduct | null>(null); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -304,7 +322,7 @@ const ProductDetailPage: React.FC = () => {
                     throw new Error('Product not found');
                 }
 
-                const data = await response.json();
+                const data: UpdatedIProduct = await response.json(); // Cast to UpdatedIProduct
                 setProduct(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
@@ -527,8 +545,37 @@ const ProductDetailPage: React.FC = () => {
 
                         <p className="text-sm text-gray-900 max-w-2xl leading-relaxed">{product.productDescription}</p>
 
-
+                        {/* --- UPDATED AFFILIATE BUTTONS DISPLAY --- */}
                         <div className="space-y-3 max-w-md">
+                            {product.affiliateButtons && product.affiliateButtons.length > 0 ? (
+                                product.affiliateButtons.map((btn, index) => (
+                                    <a
+                                        key={index}
+                                        href={btn.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between border-2 border-[#FF5F1F] rounded-lg p-3 hover:bg-[#FF5F1F] hover:text-white transition-colors cursor-pointer group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <ShoppingCart className="w-5 h-5 text-[#FF5F1F] group-hover:text-white" />
+                                            <span className="font-medium text-gray-900 group-hover:text-white">
+                                                {btn.text}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {/* Optionally show price here if productPrice is relevant */}
+                                            {index === 0 && product.productPrice && (
+                                                <>
+                                                    <span className="text-xs text-gray-500 group-hover:text-white">USD</span>
+                                                    <span className="font-bold text-gray-900 group-hover:text-white">{product.productPrice}</span>
+                                                </>
+                                            )}
+                                            {index > 0 && <ExternalLink className='w-4 h-4 text-gray-500 group-hover:text-white' />}
+                                        </div>
+                                    </a>
+                                ))
+                            ) : (
+                                <div className="space-y-3 max-w-md">
                             <a
                                 href={product.affiliateLink}
                                 target="_blank"
@@ -542,6 +589,9 @@ const ProductDetailPage: React.FC = () => {
                                 </div>
                             </a>
                         </div>
+                            )}
+                        </div>
+                        {/* --------------------------------------- */}
 
                         <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">ⓘ Conducting these analyses comes with expenses. If you choose to buy through my links, you’ll be helping keep this site running—at no additional cost to you. I may receive a small commission, and I truly appreciate your support!</p>
                     </div>

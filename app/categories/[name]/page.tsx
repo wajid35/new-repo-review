@@ -4,7 +4,12 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { IProduct } from "@/models/post";
+import { IProduct as BaseProduct } from "@/models/post";
+
+interface IProduct extends BaseProduct {
+  affiliateLink?: string;
+  affiliateLinkText?: string;
+}
 import { BarChart3, ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
 import Loader from "@/app/components/Loader";
 
@@ -63,6 +68,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => {
   const productSlug = createProductSlug(product.productTitle, idx + 1);
+  const affiliateLinkText = product.affiliateLinkText ?? 'Buy Now';
 
   return (
     <div
@@ -173,16 +179,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => {
             <BarChart3 size={18} />
             View Analysis
           </Link>
-          <Link
-            href={product.affiliateLink}
+          <a
+            href={product.affiliateLink ?? '#'}
             className="bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             target="_blank"
             rel="noopener noreferrer"
           >
             <ExternalLink size={18} />
-            <span>{product.affiliateLinkText}</span>
+            <span>{affiliateLinkText}</span>
             <span>{`USD ${product.productPrice}`}</span>
-          </Link>
+          </a>
         </div>
       </div>
     </div>

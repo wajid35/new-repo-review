@@ -2,9 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { X, Star, MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Loader2 } from 'lucide-react';
+import { X, Star, MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Loader2, Plus } from 'lucide-react';
 import axios from 'axios';
 import FileUpload from '@/app/components/FileUpload';
+
+// Constants for affiliate buttons
+const MAX_AFFILIATE_BUTTONS = 10;
+const MIN_AFFILIATE_BUTTONS = 1;
+
+// --- INTERFACES ---
+
+interface IAffiliateButton {
+    link: string;
+    text: string;
+}
 
 interface RedditReview {
     comment: string;
@@ -29,8 +40,9 @@ interface IProduct {
     productTitle: string;
     productDescription: string;
     productPrice: string;
-    affiliateLink: string;
-    affiliateLinkText: string;
+    // UPDATED: Replaced single link/text with array
+    affiliateButtons: IAffiliateButton[];
+    //
     productScore: number;
     productPhotos: string[];
     redditReviews?: RedditReview[];
@@ -53,6 +65,8 @@ interface UploadResponse {
     name?: string;
 }
 
+// --- COMPONENT START ---
+
 const UpdatePost: React.FC = () => {
     const router = useRouter();
     const params = useParams();
@@ -71,8 +85,9 @@ const UpdatePost: React.FC = () => {
         productTitle: '',
         productDescription: '',
         productPrice: '',
-        affiliateLink: '',
-        affiliateLinkText: '',
+        // UPDATED: Use affiliateButtons array
+        affiliateButtons: [{ link: '', text: '' }],
+        //
         productScore: 50,
         productPhotos: [],
         redditReviews: [],
@@ -87,13 +102,13 @@ const UpdatePost: React.FC = () => {
         neutral: 0
     });
 
-    // Fetch categories
+    // --- DATA FETCHING ---
+
     const fetchCategories = async () => {
         try {
             setCategoriesLoading(true);
             const response = await fetch('/api/categories');
             const result = await response.json();
-
             if (result.success) {
                 setCategories(result.data);
             } else {
@@ -106,59 +121,50 @@ const UpdatePost: React.FC = () => {
         }
     };
 
-    // Fetch post data
     useEffect(() => {
         const fetchPost = async () => {
             if (postId) {
                 try {
                     setLoading(true);
-                    console.log('Fetching post with ID:', postId);
-
-                    // Extract product ID and rank from the params (if formatted like id-rank)
+                    
                     const fullId = postId as string;
                     const lastDashIndex = fullId.lastIndexOf('-');
                     let productId = fullId;
-                    let rank = null;
 
                     if (lastDashIndex !== -1) {
                         productId = fullId.substring(0, lastDashIndex);
-                        const rankString = fullId.substring(lastDashIndex + 1);
-                        rank = parseInt(rankString, 10);
-                        if (!isNaN(rank)) {
-                            console.log('Extracted rank:', rank);
-                        }
                     }
 
-                    console.log('Using product ID:', productId);
-
-                    // Use the correct API endpoint structure
                     const response = await fetch(`/api/auth/post/${productId}`);
-
-                    console.log('Response status:', response.status);
-
                     if (!response.ok) {
                         const errorData = await response.json();
-                        console.error('Error response:', errorData);
                         throw new Error(errorData.error || 'Product not found');
                     }
 
                     const data = await response.json();
-                    console.log('Fetched post data:', data);
-
-                    // Handle both direct data and wrapped response
                     const postData = data.data || data;
 
-                    // Ensure productPhotos is always an array
+                    // AFFILIATE BUTTONS LOGIC: Ensure data structure is correctly loaded
+                    let affiliateButtons: IAffiliateButton[] = [];
+                    if (Array.isArray(postData.affiliateButtons) && postData.affiliateButtons.length > 0) {
+                        affiliateButtons = postData.affiliateButtons.map((btn: Partial<IAffiliateButton>) => ({
+                            link: typeof btn?.link === 'string' ? btn.link : '',
+                            text: typeof btn?.text === 'string' ? btn.text : ''
+                        }));
+                    } else {
+                         // Default to one empty button if array is missing or empty
+                        affiliateButtons = [{ link: '', text: '' }];
+                    }
+
                     const cleanedPostData = {
                         ...postData,
                         productPhotos: postData.productPhotos || [],
                         redditReviews: postData.redditReviews || [],
                         category: postData.category || '',
+                        affiliateButtons, // Use the processed buttons
                     };
 
-                    console.log('Cleaned post data:', cleanedPostData);
-
-                    setFormData(cleanedPostData);
+                    setFormData(cleanedPostData as IProduct);
                     setRedditReviewsInput(JSON.stringify(postData.redditReviews || [], null, 2));
                 } catch (err) {
                     console.error('Error fetching post:', err);
@@ -173,82 +179,51 @@ const UpdatePost: React.FC = () => {
         fetchCategories();
     }, [postId]);
 
-    // Calculate review percentages
-    useEffect(() => {
-        let reviews: RedditReview[] = [];
-        try {
-            if (redditReviewsInput.trim()) {
-                reviews = JSON.parse(redditReviewsInput);
-            }
-        } catch {
-            // ignore parse error
-        }
-        const total = reviews.length;
-        const positive = reviews.filter(r => r.tag === 'positive').length;
-        const negative = reviews.filter(r => r.tag === 'negative').length;
-        const neutral = reviews.filter(r => r.tag === 'neutral').length;
-        setReviewPercentages({
-            positive: total > 0 ? Math.round((positive / total) * 100) : 0,
-            negative: total > 0 ? Math.round((negative / total) * 100) : 0,
-            neutral: total > 0 ? Math.round((neutral / total) * 100) : 0
+    // --- AFFILIATE BUTTON HANDLERS ---
+
+    const handleAffiliateButtonChange = (index: number, field: 'link' | 'text', value: string) => {
+        setFormData(prev => {
+            const newButtons = [...prev.affiliateButtons];
+            newButtons[index] = {
+                ...newButtons[index],
+                [field]: value,
+            };
+            return { ...prev, affiliateButtons: newButtons };
         });
-    }, [redditReviewsInput]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        let redditReviews: RedditReview[] = [];
-        try {
-            const parsed = JSON.parse(redditReviewsInput);
-            if (!Array.isArray(parsed)) throw new Error('Not an array');
-            redditReviews = parsed.map((p) => ({
-                comment: String(p.comment ?? p.commentText ?? ''),
-                tag: p.tag === 'positive' || p.tag === 'negative' ? p.tag : 'neutral',
-                link: String(p.link ?? p.permalink ?? ''),
-                author: typeof p.author === 'string' ? p.author : '',
-                subreddit: typeof p.subreddit === 'string' ? p.subreddit : '',
-            }));
-        } catch {
-            alert('Reddit reviews must be a valid JSON array.');
-            return;
-        }
-
-        try {
-            setUpdateLoading(true);
-            const response = await fetch('/api/auth/post', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: postId,
-                    ...formData,
-                    productPhotos: formData.productPhotos.filter(photo => photo.trim() !== ''),
-                    redditReviews,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to update post');
-            }
-
-            alert('Post updated successfully!');
-            router.push('/dashboard/allposts');
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to update post');
-        } finally {
-            setUpdateLoading(false);
-        }
     };
 
+    const handleAddAffiliateButton = () => {
+        if (formData.affiliateButtons.length >= MAX_AFFILIATE_BUTTONS) {
+            alert(`Maximum ${MAX_AFFILIATE_BUTTONS} affiliate buttons allowed.`);
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            affiliateButtons: [...prev.affiliateButtons, { link: '', text: '' }]
+        }));
+    };
+
+    const handleRemoveAffiliateButton = (index: number) => {
+        if (formData.affiliateButtons.length <= MIN_AFFILIATE_BUTTONS) {
+            alert(`At least ${MIN_AFFILIATE_BUTTONS} affiliate button is required.`);
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            affiliateButtons: prev.affiliateButtons.filter((_, i) => i !== index)
+        }));
+    };
+
+    // --- OTHER HANDLERS (Simplified for brevity) ---
+
+    // ... (handleRemoveImage, handleImageUploadSuccess, handleImageUploadProgress, etc. remain the same)
     const handleRemoveImage = (idx: number) => {
         setFormData(prev => ({
             ...prev,
             productPhotos: prev.productPhotos.filter((_, i) => i !== idx)
         }));
     };
-
+    
     const handleImageUploadSuccess = (index: number, response: UploadResponse) => {
         setFormData(prev => {
             const newPhotos = [...(prev.productPhotos || [])];
@@ -310,7 +285,7 @@ const UpdatePost: React.FC = () => {
             setIsGeneratingLikesDislikes(false);
         }
     };
-
+    
     const calculateProductRank = () => {
         let redditReviews: RedditReview[] = [];
         try {
@@ -329,7 +304,7 @@ const UpdatePost: React.FC = () => {
         setFormData(prev => ({ ...prev, productRank: rank }));
         return rank;
     };
-
+    
     const canGenerateLikesDislikes = () => {
         try {
             if (redditReviewsInput.trim()) {
@@ -341,7 +316,97 @@ const UpdatePost: React.FC = () => {
         }
         return false;
     };
+    
+    // --- SUBMIT HANDLER ---
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        // 1. AFFILIATE BUTTON VALIDATION (Client-side)
+        const validAffiliateButtons = formData.affiliateButtons.filter(btn =>
+            btn.link.trim().length > 0 && btn.text.trim().length > 0
+        );
+
+        if (validAffiliateButtons.length < MIN_AFFILIATE_BUTTONS) {
+            alert(`At least one valid affiliate button is required (both link and text must be filled).`);
+            return;
+        }
+
+        if (validAffiliateButtons.length > MAX_AFFILIATE_BUTTONS) {
+            alert(`Maximum ${MAX_AFFILIATE_BUTTONS} affiliate buttons allowed.`);
+            return;
+        }
+
+        // Validate URLs and text length
+        for (const btn of validAffiliateButtons) {
+            try {
+                new URL(btn.link.trim());
+            } catch {
+                alert(`Invalid affiliate button URL format: "${btn.link}"`);
+                return;
+            }
+
+            if (btn.text.trim().length > 50) {
+                alert(`Affiliate button text must be less than 50 characters. Issue in: "${btn.text}"`);
+                return;
+            }
+        }
+        
+        const cleanedAffiliateButtons = validAffiliateButtons.map(btn => ({
+            link: btn.link.trim(),
+            text: btn.text.trim()
+        }));
+        
+        // 2. REDDIT REVIEWS PARSING
+        let redditReviews: RedditReview[] = [];
+        try {
+            const parsed = JSON.parse(redditReviewsInput);
+            if (!Array.isArray(parsed)) throw new Error('Not an array');
+            redditReviews = parsed.map((p) => ({
+                comment: String(p.comment ?? p.commentText ?? ''),
+                tag: p.tag === 'positive' || p.tag === 'negative' ? p.tag : 'neutral',
+                link: String(p.link ?? p.permalink ?? ''),
+                author: typeof p.author === 'string' ? p.author : '',
+                subreddit: typeof p.subreddit === 'string' ? p.subreddit : '',
+            }));
+        } catch {
+            alert('Reddit reviews must be a valid JSON array.');
+            return;
+        }
+
+        // 3. API CALL
+        try {
+            setUpdateLoading(true);
+            const response = await fetch('/api/auth/post', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: postId,
+                    ...formData,
+                    productPhotos: formData.productPhotos.filter(photo => photo.trim() !== ''),
+                    redditReviews,
+                    affiliateButtons: cleanedAffiliateButtons, // SEND CLEANED BUTTONS
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update post');
+            }
+
+            alert('Post updated successfully! 🎉');
+            router.push('/dashboard/allposts');
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Failed to update post');
+        } finally {
+            setUpdateLoading(false);
+        }
+    };
+    
+    // --- JSX (Loading/Error) ---
+    
     if (loading) {
         return (
             <div className="max-w-4xl mx-auto p-6">
@@ -372,6 +437,8 @@ const UpdatePost: React.FC = () => {
         );
     }
 
+    // --- JSX (Main Form) ---
+
     return (
         <div className="min-h-screen bg-gray-50 w-full flex justify-center">
             <div className="max-w-4xl w-full p-6">
@@ -386,7 +453,7 @@ const UpdatePost: React.FC = () => {
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
-                    {/* Review Percentages */}
+                    {/* Review Percentages... (JSX remains the same) */}
                     <div className="flex gap-6 justify-center mb-8">
                         <div className="flex flex-col items-center">
                             <span className="font-semibold text-green-600">Positive</span>
@@ -403,7 +470,7 @@ const UpdatePost: React.FC = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Category */}
+                        {/* Category... (JSX remains the same) */}
                         <div>
                             <label className="block text-sm font-medium mb-2">Category *</label>
                             <select
@@ -419,7 +486,7 @@ const UpdatePost: React.FC = () => {
                             </select>
                         </div>
 
-                        {/* Product Images */}
+                        {/* Product Images... (JSX remains the same) */}
                         <div>
                             <label className="block text-sm font-medium mb-2">Product Images</label>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -464,7 +531,7 @@ const UpdatePost: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Basic Information */}
+                        {/* Basic Information (Title, Price)... (JSX remains the same) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium mb-2">Product Title *</label>
@@ -490,6 +557,7 @@ const UpdatePost: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Product Description... (JSX remains the same) */}
                         <div>
                             <label className="block text-sm font-medium mb-2">Product Description *</label>
                             <textarea
@@ -500,33 +568,61 @@ const UpdatePost: React.FC = () => {
                             />
                         </div>
 
-                        {/* Affiliate Link Information */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Affiliate Link *</label>
-                                <input
-                                    type="url"
-                                    value={formData.affiliateLink}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, affiliateLink: e.target.value }))}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                    required
-                                />
+                        {/* --- NEW AFFILIATE BUTTONS SECTION --- */}
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Affiliate Buttons (Min 1, Max 10) *</label>
+                            <div className="space-y-4">
+                                {formData.affiliateButtons.map((btn, index) => (
+                                    <div key={index} className="flex gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50 relative">
+                                        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <input
+                                                    type="url"
+                                                    value={btn.link}
+                                                    onChange={(e) => handleAffiliateButtonChange(index, 'link', e.target.value)}
+                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
+                                                    placeholder="Affiliate Link (e.g., https://amazon.com/...)"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <input
+                                                    type="text"
+                                                    value={btn.text}
+                                                    onChange={(e) => handleAffiliateButtonChange(index, 'text', e.target.value)}
+                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
+                                                    placeholder="Button Text (Max 50 chars)"
+                                                    maxLength={50}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        {formData.affiliateButtons.length > MIN_AFFILIATE_BUTTONS && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveAffiliateButton(index)}
+                                                className="self-center bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                                                title="Remove Button"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Affiliate Link Text *</label>
-                                <input
-                                    type="text"
-                                    value={formData.affiliateLinkText}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, affiliateLinkText: e.target.value }))}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f59772]"
-                                    placeholder="Buy on Amazon"
-                                    required
-                                />
-                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAddAffiliateButton}
+                                disabled={formData.affiliateButtons.length >= MAX_AFFILIATE_BUTTONS}
+                                className="mt-4 bg-lime-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-lime-600 transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Add Affiliate Button
+                            </button>
                         </div>
+                        {/* --- END NEW AFFILIATE BUTTONS SECTION --- */}
 
-                        {/* Reddit Reviews as JSON Array */}
+                        {/* Reddit Reviews as JSON Array... (JSX remains the same) */}
                         <div>
                             <label className="block text-sm font-medium mb-3 flex items-center gap-2">
                                 <MessageSquare className="w-5 h-5" />
@@ -552,7 +648,7 @@ const UpdatePost: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Generate Likes and Dislikes Button */}
+                        {/* Generate Likes and Dislikes Button... (JSX remains the same) */}
                         <div className="pt-4">
                             <button
                                 type="button"
@@ -575,7 +671,7 @@ const UpdatePost: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* Display Generated Likes and Dislikes */}
+                        {/* Display Generated Likes and Dislikes... (JSX remains the same) */}
                         {formData.likesAndDislikes && (
                             <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
                                 <h3 className="text-xl font-bold text-gray-800 mb-4">Generated Likes & Dislikes</h3>
@@ -624,7 +720,8 @@ const UpdatePost: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Product Score */}
+
+                        {/* Product Score... (JSX remains the same) */}
                         <div>
                             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                                 <Star className="w-5 h-5" />
@@ -643,20 +740,18 @@ const UpdatePost: React.FC = () => {
                             />
                         </div>
 
-                        {/* Product Rank */}
+                        {/* Product Rank... (JSX remains the same) */}
                         <div className="pt-4 flex flex-col items-start">
                             <button
                                 type="button"
-                                onClick={() => {
-                                    calculateProductRank();
-                                }}
+                                onClick={calculateProductRank}
                                 className="bg-blue-500 cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-all mb-2"
                             >
                                 Generate Product Rank{typeof formData.productRank === 'number' ? `: ${formData.productRank}%` : ''}
                             </button>
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Action Buttons... (JSX remains the same) */}
                         <div className="flex gap-4 pt-6 border-t">
                             <button
                                 type="button"
@@ -679,6 +774,6 @@ const UpdatePost: React.FC = () => {
             </div>
         </div>
     );
-};
+}
 
 export default UpdatePost;

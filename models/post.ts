@@ -18,14 +18,18 @@ export interface ILikesAndDislikes {
     dislikes: ILikeDislikePoint[];
 }
 
+export interface IAffiliateButton {
+    link: string;
+    text: string;
+}
+
 export interface IProduct {
     _id?: mongoose.Types.ObjectId;
     productTitle: string;
     productDescription: string;
     productPhotos: string[];
     productPrice: string;
-    affiliateLink: string;
-    affiliateLinkText: string;
+    affiliateButtons: IAffiliateButton[];
     positiveReviewPercentage?: number;
     neutralReviewPercentage?: number;
     negativeReviewPercentage?: number;
@@ -87,6 +91,29 @@ const likesAndDislikesSchema = new Schema({
     }
 }, { _id: false });
 
+const affiliateButtonSchema = new Schema({
+    link: {
+        type: String,
+        required: true,
+        validate: {
+            validator: function (url: string) {
+                try {
+                    new URL(url);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            message: 'Invalid URL format'
+        }
+    },
+    text: {
+        type: String,
+        required: true,
+        maxlength: 50
+    }
+}, { _id: false });
+
 const productSchema = new Schema({
     productRank: {
         type: Number,
@@ -130,25 +157,15 @@ const productSchema = new Schema({
             message: 'Invalid price format'
         }
     },
-    affiliateLink: {
-        type: String,
+    affiliateButtons: {
+        type: [affiliateButtonSchema],
         required: true,
         validate: {
-            validator: function (url: string) {
-                try {
-                    new URL(url);
-                    return true;
-                } catch {
-                    return false;
-                }
+            validator: function (arr: IAffiliateButton[]) {
+                return arr.length >= 1 && arr.length <= 10;
             },
-            message: 'Invalid URL format'
+            message: 'Must have between 1 and 10 affiliate buttons'
         }
-    },
-    affiliateLinkText: {
-        type: String,
-        required: true,
-        maxlength: 50
     },
     redditReviews: {
         type: [redditReviewSchema],

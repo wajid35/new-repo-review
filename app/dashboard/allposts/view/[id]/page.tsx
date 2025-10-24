@@ -28,6 +28,9 @@ interface IRedditReview {
     subreddit: string;
 }
 
+// NOTE: IProduct from '@/models/post' is assumed to contain:
+// affiliateButtons: { link: string; text: string; }[]
+
 // --- NEW COMPONENT: LikesDislikesFeature ---
 
 interface LikesDislikesFeatureProps {
@@ -528,21 +531,33 @@ const ProductDetailPage: React.FC = () => {
                         <h1 className="text-3xl font-bold text-gray-900">
                             {product.productTitle}
                         </h1>
-
+                        
+                        {/* FIX: Dynamically render all affiliate buttons */}
                         <div className="space-y-3 max-w-md">
-                            <a
-                                href={product.affiliateLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between border-2 border-[#FF5F1F] rounded-lg p-3 hover:bg-[#FF5F1F] hover:text-white transition-colors cursor-pointer group"
-                            >
-                                <span className="font-medium text-gray-900 group-hover:text-white">{product.affiliateLinkText}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500 group-hover:text-white">USD</span>
-                                    <span className="font-bold text-gray-900 group-hover:text-white">{product.productPrice}</span>
-                                </div>
-                            </a>
-
+                            {product.affiliateButtons && product.affiliateButtons.map((button, index) => (
+                                <a
+                                    key={index}
+                                    href={button.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    // Primary button styling for the first one, secondary for others
+                                    className={`flex items-center justify-between border-2 rounded-lg p-3 transition-colors cursor-pointer group ${
+                                        index === 0
+                                            ? 'border-[#FF5F1F] hover:bg-[#FF5F1F] hover:text-white'
+                                            : 'border-gray-300 hover:border-[#FF5F1F] hover:bg-gray-50'
+                                    }`}
+                                >
+                                    <span className={`font-medium ${index === 0 ? 'text-gray-900 group-hover:text-white' : 'text-gray-700 group-hover:text-[#FF5F1F]'}`}>
+                                        {button.text}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-xs ${index === 0 ? 'text-gray-500 group-hover:text-white' : 'text-gray-500'}`}>USD</span>
+                                        <span className={`font-bold ${index === 0 ? 'text-gray-900 group-hover:text-white' : 'text-gray-900'}`}>
+                                            {product.productPrice}
+                                        </span>
+                                    </div>
+                                </a>
+                            ))}
                         </div>
 
                         <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">{product.productDescription}</p>
