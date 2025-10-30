@@ -144,7 +144,7 @@ const CategoriesGrid: React.FC = () => {
             {filteredCategories.map((category) => (
               <Link
                 key={category._id}
-                href={`/categories/${category.name.replace(/\s+/g, '-').replace(/\(|\)/g, '')}?id=${category._id}`}
+                href={`/categories/${category.name.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}
                 className="bg-white rounded-xl overflow-hidden hover:bg-[#FF5F1F]/10 transition-all duration-300 transform hover:scale-105 border border-gray-300 hover:border-[#FF5F1F]/50 cursor-pointer block group"
               >
                 {/* Category Image */}
