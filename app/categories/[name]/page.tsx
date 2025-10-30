@@ -1,17 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
-import { IProduct as BaseProduct } from "@/models/post";
-
-interface IProduct extends BaseProduct {
-  affiliateLink?: string;
-  affiliateLinkText?: string;
-}
-import { BarChart3, ChevronLeft, ChevronRight, ExternalLink, X } from "lucide-react";
+import { useParams, useSearchParams } from "next/navigation";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import Loader from "@/app/components/Loader";
+import ProductCard from "@/app/components/ProductCard";
 
 // Define the type for the FAQ structure
 interface IFaq {
@@ -49,154 +42,28 @@ interface Discussion {
   productTitle: string;
 }
 
-// Helper function to create URL-friendly slug from product title
-const createProductSlug = (title: string, rank: number): string => {
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-    .trim();
-  return `${slug}-${rank}`;
-};
-
-// Separate component for the Product Card
-interface ProductCardProps {
-  product: IProduct;
-  idx: number;
+// Define the product type
+interface IProduct {
+  _id?: string;
+  productTitle: string;
+  productPhotos?: string[];
+  productPrice?: string;
+  productRank?: number;
+  category: string;
+  positiveReviewPercentage?: number;
+  neutralReviewPercentage?: number;
+  negativeReviewPercentage?: number;
+  redditReviews?: RedditReview[];
+  affiliateLink?: string;
+  affiliateLinkText?: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, idx }) => {
-  const productSlug = createProductSlug(product.productTitle, idx + 1);
-  const affiliateLinkText = product.affiliateLinkText ?? 'Buy Now';
-
-  return (
-    <div
-      className="bg-white rounded-xl p-6 hover:bg-gray-100 transition-all duration-300 border border-gray-200 hover:border-[#FF5F1F]/50 group relative shadow-sm w-full md:w-80 flex-shrink-0 snap-center"
-      key={product._id?.toString()}
-    >
-      {/* Rank Badge */}
-      <div className="absolute top-4 left-4 bg-[#FF5F1F] text-white rounded-lg px-3 py-1 font-bold text-sm z-10 shadow-lg">
-        #{idx + 1}
-      </div>
-
-      {/* Product Image */}
-      <Link
-        href={`/products/${productSlug}?id=${product._id?.toString()}`}
-        className="block"
-      >
-        <div className="relative cursor-pointer w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
-          {product.productPhotos && product.productPhotos.length > 0 ? (
-            <Image
-              src={product.productPhotos[0]}
-              alt={product.productTitle}
-              width={400}
-              height={200}
-              className="w-full h-full object-fit"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
-                  📦
-                </div>
-                <p className="text-sm">No Image</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </Link>
-
-      {/* Product Info */}
-      <div className="space-y-3">
-        <h3 className="text-xl font-bold text-black line-clamp-1 group-hover:text-[#FF5F1F] transition-colors">
-          {product.productTitle}
-        </h3>
-
-        {/* Review Bars */}
-        <div className="space-y-2">
-          {/* Positive */}
-          <div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-green-600">Positive</span>
-              <span className="text-green-600">
-                {product.positiveReviewPercentage || 0}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${product.positiveReviewPercentage || 0}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Neutral */}
-          <div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-yellow-600">Neutral</span>
-              <span className="text-yellow-600">
-                {product.neutralReviewPercentage || 0}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${product.neutralReviewPercentage || 0}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Negative */}
-          <div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-red-600">Negative</span>
-              <span className="text-red-600">
-                {product.negativeReviewPercentage || 0}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-red-500 h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${product.negativeReviewPercentage || 0}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-2">
-          <Link
-            href={`/products/${productSlug}?id=${product._id?.toString()}`}
-            className="bg-[#FF5F1F] hover:bg-[#FF5F1F]/90 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-          >
-            <BarChart3 size={18} />
-            View Analysis
-          </Link>
-          <a
-            href={product.affiliateLink ?? '#'}
-            className="bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink size={18} />
-            <span>{affiliateLinkText}</span>
-            <span>{`USD ${product.productPrice}`}</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const CategoryProducts: React.FC = () => {
-  const searchParams = useSearchParams();
+  const params = useParams(); // Get route params
+  const searchParams = useSearchParams(); // Get query params
+  
+  // Get category identifier from either route params or query params
+  const categorySlug = params?.name as string | undefined;
   const categoryId = searchParams.get('id');
 
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -204,12 +71,9 @@ const CategoryProducts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'rank' | 'price' | 'positive'>('rank');
-  // State for custom price filter
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
-  // State to control the visibility of the price inputs
   const [showPriceFilter, setShowPriceFilter] = useState<boolean>(false);
-  // State for reviews modal
   const [showReviewsModal, setShowReviewsModal] = useState<boolean>(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -227,11 +91,13 @@ const CategoryProducts: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       console.log('🔍 Starting fetchData...');
-      console.log('📌 Category ID from URL:', categoryId);
+      console.log('📌 Category Slug from URL:', categorySlug);
+      console.log('📌 Category ID from Query:', categoryId);
 
-      if (!categoryId) {
-        console.error('❌ No category ID found in URL');
-        setError('Category ID is required');
+      // Check if neither slug nor ID is provided
+      if (!categorySlug && !categoryId) {
+        console.error('❌ No category slug or ID found');
+        setError('Category identifier is required');
         setLoading(false);
         return;
       }
@@ -240,10 +106,22 @@ const CategoryProducts: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const apiUrl = `/api/categories/categoryproducts/${categoryId}`;
-        console.log('🌐 Fetching from:', apiUrl);
+        let apiUrl: string;
+        let fetchMethod: 'id' | 'slug';
 
-        // Fetch category with products using the API
+        // Prefer ID if available, otherwise use slug from URL
+        if (categoryId) {
+          apiUrl = `/api/categories/categoryproducts/${categoryId}`;
+          fetchMethod = 'id';
+          console.log('🌐 Fetching by ID from:', apiUrl);
+        } else if (categorySlug) {
+          apiUrl = `/api/categories/by-title/${categorySlug}`;
+          fetchMethod = 'slug';
+          console.log('🌐 Fetching by slug from:', apiUrl);
+        } else {
+          throw new Error('No valid category identifier provided');
+        }
+
         const response = await fetch(apiUrl);
         console.log('📡 Response status:', response.status);
         console.log('📡 Response ok:', response.ok);
@@ -252,6 +130,31 @@ const CategoryProducts: React.FC = () => {
           const errorText = await response.text();
           console.error('❌ Response not OK. Status:', response.status);
           console.error('❌ Error text:', errorText);
+          
+          // If fetching by ID failed and we have a slug, try the slug fallback
+          if (fetchMethod === 'id' && categorySlug) {
+            console.log('⚠️ ID fetch failed, attempting slug fallback...');
+            const fallbackUrl = `/api/categories/by-title/${categorySlug}`;
+            console.log('🌐 Fallback URL:', fallbackUrl);
+            
+            const fallbackResponse = await fetch(fallbackUrl);
+            
+            if (!fallbackResponse.ok) {
+              throw new Error(`Failed to fetch category data: ${response.status} - ${errorText}`);
+            }
+            
+            const fallbackResult = await fallbackResponse.json();
+            
+            if (fallbackResult.success) {
+              console.log('✅ Fallback successful! Category Data:', fallbackResult.data.category);
+              console.log('✅ Products Count:', fallbackResult.data.products.length);
+              setCategoryData(fallbackResult.data.category);
+              setProducts(fallbackResult.data.products);
+              setLoading(false);
+              return;
+            }
+          }
+          
           throw new Error(`Failed to fetch category data: ${response.status} - ${errorText}`);
         }
 
@@ -284,11 +187,9 @@ const CategoryProducts: React.FC = () => {
     };
 
     fetchData();
-  }, [categoryId]);
+  }, [categoryId, categorySlug]);
 
-  // Helper function to safely parse the product price as a number
   const getProductPrice = (priceString: string | undefined): number => {
-    // Strips out non-numeric characters except for the decimal point
     const cleanPrice = priceString?.replace(/[^0-9.]/g, '') || '0';
     return parseFloat(cleanPrice);
   };
@@ -296,20 +197,17 @@ const CategoryProducts: React.FC = () => {
   const filtered = products
     .filter((p) => {
       const hasRank = typeof p.productRank === "number";
-      // Price Filter Logic
       const productPrice = getProductPrice(p.productPrice);
-      // Min price is 0 if input is empty
       const min = minPrice ? parseFloat(minPrice) : 0;
-      // Max price is effectively infinity if input is empty
       const max = maxPrice ? parseFloat(maxPrice) : Number.MAX_SAFE_INTEGER;
       
       const passesPriceFilter = productPrice >= min && productPrice <= max;
 
-      // Filter: Must have a rank AND must pass the custom price filter
       return hasRank && passesPriceFilter;
     })
     .sort((a, b) => {
       if (sortBy === 'rank') {
+        // Higher productRank should come first (be rank #1)
         return (b.productRank ?? 0) - (a.productRank ?? 0);
       } else if (sortBy === 'price') {
         const priceA = getProductPrice(a.productPrice);
@@ -327,13 +225,11 @@ const CategoryProducts: React.FC = () => {
   const faqs = categoryData?.faqs || [];
   console.log('📋 FAQs count:', faqs.length);
 
-  // Function to handle clearing the filter and closing the inputs
   const handleClearFilter = () => {
     setMinPrice('');
     setMaxPrice('');
   };
 
-  // Collect all Reddit reviews from all products
   const allDiscussions: Discussion[] = products.flatMap(product => 
     ((product.redditReviews as RedditReview[]) || []).map(review => ({
       subreddit: review.subreddit,
@@ -345,7 +241,6 @@ const CategoryProducts: React.FC = () => {
     }))
   );
 
-  // Count total redditors (unique authors)
   const uniqueAuthors = new Set(allDiscussions.map(d => d.author)).size;
   const totalRedditors = uniqueAuthors;
   const totalDiscussions = allDiscussions.length;
@@ -356,11 +251,10 @@ const CategoryProducts: React.FC = () => {
         {/* Loading State */}
         {loading && (
          <div className="flex items-center justify-center h-screen">
-  <div className="text-[#FF5F1F] text-xl">
-    <Loader />
-  </div>
-</div>
-
+          <div className="text-[#FF5F1F] text-xl">
+            <Loader />
+          </div>
+        </div>
         )}
 
         {/* Error State */}
@@ -420,7 +314,6 @@ const CategoryProducts: React.FC = () => {
             {showReviewsModal && (
               <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
-                  {/* Modal Header */}
                   <div className="flex items-center justify-between p-6 border-b border-gray-200">
                     <h2 className="text-2xl font-bold text-black">All discussions:</h2>
                     <button
@@ -432,7 +325,6 @@ const CategoryProducts: React.FC = () => {
                     </button>
                   </div>
                   
-                  {/* Modal Content */}
                   <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
                     <div className="space-y-3">
                       {allDiscussions.map((discussion, idx) => (
@@ -471,7 +363,6 @@ const CategoryProducts: React.FC = () => {
             {/* Filter and Sort Controls */}
             {products.length > 0 && (
               <div className="mb-6">
-                {/* Sort Buttons & New Filter Button */}
                 <div className="flex flex-wrap gap-3 mb-4">
                   <button
                     onClick={() => { setSortBy('rank'); setShowPriceFilter(false); }}
@@ -501,7 +392,6 @@ const CategoryProducts: React.FC = () => {
                     Sort by Price (Low to High)
                   </button>
                   
-                  {/* Custom Price Filter Toggle Button */}
                   <button
                     onClick={() => setShowPriceFilter(prev => !prev)}
                     className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition-all flex items-center gap-2 ${showPriceFilter || minPrice || maxPrice
@@ -518,7 +408,6 @@ const CategoryProducts: React.FC = () => {
                   </button>
                 </div>
                 
-                {/* Price Filter Inputs (Conditional Display) */}
                 {showPriceFilter && (
                   <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 max-w-lg transition-all duration-300">
                     <h3 className="text-md font-semibold mb-3 text-black">Set Price Range (USD)</h3>
@@ -587,7 +476,11 @@ const CategoryProducts: React.FC = () => {
                     className="flex space-x-6 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
                   >
                     {filtered.map((product, idx) => (
-                      <ProductCard product={product} idx={idx} key={product._id?.toString()} />
+                      <ProductCard 
+                        key={product._id?.toString()} 
+                        product={product} 
+                        rank={idx + 1}
+                      />
                     ))}
                   </div>
 

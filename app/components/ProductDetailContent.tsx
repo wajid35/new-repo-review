@@ -1,15 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ExternalLink, ArrowLeft, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react'; // Added ShoppingCart icon
-import { IProduct } from '@/models/post'; // Ensure this IProduct has affiliateButtons: IAffiliateButton[]
+import { ExternalLink, ArrowLeft, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react';
 
 // --- Interface Definitions ---
-
 interface LikeDislikePoint {
     heading: string;
     points: string[];
@@ -28,24 +25,41 @@ interface IRedditReview {
     subreddit: string;
 }
 
-// Ensure IAffiliateButton is defined or imported, assuming it's from '@/models/post'
 interface IAffiliateButton {
     link: string;
     text: string;
 }
 
-// NOTE: The main IProduct interface being used by the component needs to be updated 
-// to include the array structure for affiliate buttons if it isn't already.
-// Assuming the imported IProduct is correct, or defining a minimal version for context:
-interface UpdatedIProduct extends IProduct {
-    affiliateButtons: IAffiliateButton[];
-    affiliateLinkText?: string; // Removed 
+interface IProduct {
+    _id?: string;
+    productTitle: string;
+    productDescription?: string;
+    productPhotos?: string[];
+    productPrice?: string;
+    productRank?: number;
+    category: string;
+    affiliateButtons?: IAffiliateButton[];
+    affiliateLinkText?: string;
     affiliateLink?: string;
-    // Removed old singular fields if they existed, e.g., affiliateLink, affiliateLinkText
+    redditReviews?: IRedditReview[];
+    likesAndDislikes?: LikesDislikesData;
 }
 
+interface ProductDetailProps {
+    productSlug: string;
+}
 
-// --- NEW COMPONENT: LikesDislikesFeature (Remains the same) ---
+// Helper function to create slug from title (same as ProductCard)
+const createProductSlug = (title: string): string => {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+};
+
+// --- Helper Components ---
 interface LikesDislikesFeatureProps {
     data: LikeDislikePoint[];
     type: 'like' | 'dislike';
@@ -95,8 +109,6 @@ const LikesDislikesFeature: React.FC<LikesDislikesFeatureProps> = ({ data, type 
     );
 };
 
-// --- NEW COMPONENT: ProductLikesDislikes (Remains the same) ---
-
 interface ProductLikesDislikesProps {
     likesAndDislikes: LikesDislikesData;
 }
@@ -116,9 +128,6 @@ const ProductLikesDislikes: React.FC<ProductLikesDislikesProps> = ({ likesAndDis
         </div>
     );
 };
-
-// --- Existing Components (RedditReviewCard and ReviewProgressBars remain the same) ---
-// ... (RedditReviewCard and ReviewProgressBars JSX and logic are unchanged)
 
 const RedditReviewCard: React.FC<{ review: IRedditReview }> = ({ review }) => {
     const [showFullText, setShowFullText] = useState(false);
@@ -214,7 +223,6 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
     const negativePercentage = totalReviews > 0 ? Math.round((negativeCount / totalReviews) * 100) : 0;
     const neutralPercentage = totalReviews > 0 ? Math.round((neutralCount / totalReviews) * 100) : 0;
 
-    // Always show today's date
     const todayString = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     return (
@@ -272,57 +280,41 @@ const ReviewProgressBars: React.FC<{ reviews: IRedditReview[] }> = ({ reviews })
     );
 };
 
-// --- ProductDetailPage (Main Component) ---
-
-const ProductDetailPage: React.FC = () => {
-    const params = useParams();
+// --- Main Component ---
+const ProductDetail: React.FC<ProductDetailProps> = ({ productSlug }) => {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const { data: session } = useSession();
-    // Update state to use the array structure for affiliate buttons
-    const [product, setProduct] = useState<UpdatedIProduct | null>(null); 
+    const [product, setProduct] = useState<IProduct | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-    const [productRank, setProductRank] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchProductData = async () => {
-            // Get product ID from query parameter
-            const productId = searchParams.get('id');
-
-            if (!productId) {
-                setError('Product ID not found');
+            if (!productSlug) {
+                setError('Product slug not found');
                 setLoading(false);
                 return;
             }
 
-            // Extract rank from the slug (last number after final hyphen)
-            if (params.slug) {
-                const slug = params.slug as string;
-                const lastDashIndex = slug.lastIndexOf('-');
-
-                if (lastDashIndex !== -1) {
-                    const rankString = slug.substring(lastDashIndex + 1);
-                    const rank = parseInt(rankString, 10);
-
-                    if (!isNaN(rank)) {
-                        setProductRank(rank);
-                    }
-                }
-            }
-
             try {
                 setLoading(true);
-
-                const response = await fetch(`/api/auth/post/${productId}`);
+                
+                // Fetch product by slug
+                const response = await fetch(`/api/products/slug/${productSlug}`);
 
                 if (!response.ok) {
                     throw new Error('Product not found');
                 }
 
-                const data: UpdatedIProduct = await response.json(); // Cast to UpdatedIProduct
+                const data: IProduct = await response.json();
+                
+                // Verify the slug matches (in case of similar products)
+                const productSlugFromTitle = createProductSlug(data.productTitle);
+                if (productSlugFromTitle !== productSlug) {
+                    throw new Error('Product slug mismatch');
+                }
+                
                 setProduct(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
@@ -332,24 +324,7 @@ const ProductDetailPage: React.FC = () => {
         };
 
         fetchProductData();
-    }, [params.slug, searchParams, session?.user?.id]);
-
-    const handleShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: product?.productTitle,
-                    text: product?.productDescription,
-                    url: window.location.href,
-                });
-            } catch (err) {
-                console.log('Error sharing:', err);
-            }
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
-        }
-    };
+    }, [productSlug]);
 
     const getTopics = () => {
         if (!product?.redditReviews) return [];
@@ -531,9 +506,11 @@ const ProductDetailPage: React.FC = () => {
                     </div>
 
                     <div className="lg:col-span-8 space-y-4">
-                        <div className="text-sm text-gray-500">
-                            #{productRank || 1} in <Link href={`/categories/${product.category.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}><span className="underline cursor-pointer hover:text-[#FF5F1F]">{product.category}</span></Link>
-                        </div>
+                        {product.productRank && (
+                            <div className="text-sm text-gray-500">
+                                #{product.productRank} in <Link href={`/categories/${product.category.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}><span className="underline cursor-pointer hover:text-[#FF5F1F]">{product.category}</span></Link>
+                            </div>
+                        )}
 
                         <div className="text-sm font-medium text-gray-700">
                             {product.productTitle.split(' ')[0]}
@@ -545,7 +522,7 @@ const ProductDetailPage: React.FC = () => {
 
                         <p className="text-sm text-gray-900 max-w-2xl leading-relaxed">{product.productDescription}</p>
 
-                        {/* --- UPDATED AFFILIATE BUTTONS DISPLAY --- */}
+                        {/* AFFILIATE BUTTONS */}
                         <div className="space-y-3 max-w-md">
                             {product.affiliateButtons && product.affiliateButtons.length > 0 ? (
                                 product.affiliateButtons.map((btn, index) => (
@@ -563,7 +540,6 @@ const ProductDetailPage: React.FC = () => {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {/* Optionally show price here if productPrice is relevant */}
                                             {index === 0 && product.productPrice && (
                                                 <>
                                                     <span className="text-xs text-gray-500 group-hover:text-white">USD</span>
@@ -575,31 +551,28 @@ const ProductDetailPage: React.FC = () => {
                                     </a>
                                 ))
                             ) : (
-                                <div className="space-y-3 max-w-md">
-                            <a
-                                href={product.affiliateLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between border-2 border-[#FF5F1F] rounded-lg p-3 hover:bg-[#FF5F1F] hover:text-white transition-colors cursor-pointer group"
-                            >
-                                <span className="font-medium text-gray-900 group-hover:text-white">{product.affiliateLinkText}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500 group-hover:text-white">USD</span>
-                                    <span className="font-bold text-gray-900 group-hover:text-white">{product.productPrice}</span>
-                                </div>
-                            </a>
-                        </div>
+                                <a
+                                    href={product.affiliateLink ?? '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-between border-2 border-[#FF5F1F] rounded-lg p-3 hover:bg-[#FF5F1F] hover:text-white transition-colors cursor-pointer group"
+                                >
+                                    <span className="font-medium text-gray-900 group-hover:text-white">{product.affiliateLinkText ?? 'Buy Now'}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-gray-500 group-hover:text-white">USD</span>
+                                        <span className="font-bold text-gray-900 group-hover:text-white">{product.productPrice}</span>
+                                    </div>
+                                </a>
                             )}
                         </div>
-                        {/* --------------------------------------- */}
 
-                        <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">ⓘ Conducting these analyses comes with expenses. If you choose to buy through my links, you’ll be helping keep this site running—at no additional cost to you. I may receive a small commission, and I truly appreciate your support!</p>
+                        <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">ⓘ Conducting these analyses comes with expenses. If you choose to buy through my links, you&apos;ll be helping keep this site running—at no additional cost to you. I may receive a small commission, and I truly appreciate your support!</p>
                     </div>
                 </div>
 
                 {/* LIKES AND DISLIKES SECTION */}
-                {(product as IProduct & { likesAndDislikes?: LikesDislikesData }).likesAndDislikes && (
-                    <ProductLikesDislikes likesAndDislikes={(product as IProduct & { likesAndDislikes: LikesDislikesData }).likesAndDislikes} />
+                {product.likesAndDislikes && (
+                    <ProductLikesDislikes likesAndDislikes={product.likesAndDislikes} />
                 )}
 
                 {/* REDDIT REVIEWS SECTION */}
@@ -665,4 +638,4 @@ const ProductDetailPage: React.FC = () => {
     );
 };
 
-export default ProductDetailPage;
+export default ProductDetail;

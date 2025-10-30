@@ -4,7 +4,23 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Star, Heart, BarChart3, ExternalLink } from 'lucide-react';
-import { IProduct } from '@/models/post';
+import { IProduct as BaseProduct } from '@/models/post';
+
+// Extend the base IProduct interface to include affiliate properties
+interface IProduct extends BaseProduct {
+    affiliateLink?: string;
+    affiliateLinkText?: string;
+}
+
+// Helper function to create URL-friendly slug from product title
+const createProductSlug = (title: string): string => {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .trim();
+};
 
 const ProductsGrid: React.FC = () => {
     const [posts, setPosts] = useState<IProduct[]>([]);
@@ -88,6 +104,7 @@ const ProductsGrid: React.FC = () => {
 
     const ProductCard: React.FC<{ product: IProduct; index: number }> = ({ product, index }) => {
         const [imageError, setImageError] = useState(false);
+        const productSlug = createProductSlug(product.productTitle);
 
         useEffect(() => {
             const checkLikeStatus = async () => {
@@ -203,16 +220,22 @@ const ProductsGrid: React.FC = () => {
                     {/* Action Buttons */}
                     <div className="flex flex-col gap-2">
                         <Link
-                            href={`/products/${product._id}`}
+                            href={`/products/${productSlug}`}
                             className="bg-[#FF5F1F] hover:bg-[#FF5F1F]/90 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                         >
                             <BarChart3 size={18} />
                             View Analysis
                         </Link>
-                        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                            <ExternalLink size={18} />
-                            Affiliate Link
-                        </button>
+                        <a
+                            href={product.affiliateLink ?? '#'}
+                            className="bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {/* <ExternalLink size={18} /> */}
+                            <span>{product.affiliateLinkText ?? 'Buy Now'}</span>
+                            <span>{`USD ${product.productPrice}`}</span>
+                        </a>
                     </div>
                 </div>
             </div>

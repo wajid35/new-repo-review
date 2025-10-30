@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Star, MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Loader2, Plus } from 'lucide-react';
 import axios from 'axios';
 import FileUpload from "@/app/components/FileUpload";
@@ -85,6 +85,7 @@ const ProductPostForm: React.FC = () => {
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGeneratingLikesDislikes, setIsGeneratingLikesDislikes] = useState(false);
+    const [isCheckingTitle, setIsCheckingTitle] = useState(false);
     const [uploadProgress, setUploadProgress] = useState<{ [key: number]: number }>({});
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -102,6 +103,48 @@ const ProductPostForm: React.FC = () => {
             setErrors(prev => ({ ...prev, [eKey]: undefined }));
         }
     };
+
+    // Check for duplicate title when title changes
+    const checkDuplicateTitle = useCallback(async (title: string) => {
+        if (!title.trim() || title.length < 3) return;
+
+        setIsCheckingTitle(true);
+        try {
+            const response = await axios.get(`/api/products/check-title?title=${encodeURIComponent(title)}`);
+            
+            if (response.data.exists) {
+                setErrors(prev => ({
+                    ...prev,
+                    productTitle: 'A product with this title already exists. Please use a different title.'
+                }));
+            } else {
+                // Clear the error if title is unique
+                setErrors(prev => {
+                    if (prev.productTitle?.includes('already exists')) {
+                        const newErrors = { ...prev };
+                        delete newErrors.productTitle;
+                        return newErrors;
+                    }
+                    return prev;
+                });
+            }
+        } catch (err) {
+            console.error('Error checking title:', err);
+        } finally {
+            setIsCheckingTitle(false);
+        }
+    }, []);
+
+    // Debounce title checking
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (formData.productTitle.trim().length >= 3) {
+                checkDuplicateTitle(formData.productTitle);
+            }
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [formData.productTitle, checkDuplicateTitle]);
 
     const addAffiliateButton = () => {
         setFormData(prev => ({
@@ -131,7 +174,7 @@ const ProductPostForm: React.FC = () => {
         }
     };
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
             setLoading(true);
             const response = await fetch('/api/categories');
@@ -143,17 +186,17 @@ const ProductPostForm: React.FC = () => {
             } else {
                 setError(result.error || 'Failed to fetch categories');
             }
-        } catch (error) {
+        } catch (err) {
             setError('Error fetching categories');
-            console.error('Error fetching categories:', error);
+            console.error('Error fetching categories:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [fetchCategories]);
 
     const handleImageUploadSuccess = (index: number, response: UploadResponse) => {
         setFormData(prev => {
@@ -196,7 +239,7 @@ const ProductPostForm: React.FC = () => {
         });
     }, [redditReviewsInput]);
 
-    const validateData = (): boolean => {
+    const validateData = async (): Promise<boolean> => {
         const newErrors: ValidationErrors = {};
 
         if (!formData.category) {
@@ -208,6 +251,16 @@ const ProductPostForm: React.FC = () => {
             newErrors.productTitle = 'Product title must be at least 3 characters';
         } else if (formData.productTitle.length > 100) {
             newErrors.productTitle = 'Product title must be less than 100 characters';
+        } else {
+            // Check for duplicate title one final time before submission
+            try {
+                const response = await axios.get(`/api/products/check-title?title=${encodeURIComponent(formData.productTitle)}`);
+                if (response.data.exists) {
+                    newErrors.productTitle = 'A product with this title already exists. Please use a different title.';
+                }
+            } catch (err) {
+                console.error('Error checking title:', err);
+            }
         }
 
         if (!formData.productDescription.trim()) {
@@ -322,10 +375,10 @@ const ProductPostForm: React.FC = () => {
             } else {
                 alert('Failed to generate likes and dislikes: ' + response.data.error);
             }
-        } catch (error) {
-            console.error('Error generating likes and dislikes:', error);
-            if (axios.isAxiosError(error)) {
-                alert(`Error: ${error.response?.data?.error || 'Failed to generate likes and dislikes'}`);
+        } catch (err) {
+            console.error('Error generating likes and dislikes:', err);
+            if (axios.isAxiosError(err)) {
+                alert(`Error: ${err.response?.data?.error || 'Failed to generate likes and dislikes'}`);
             } else {
                 alert('An unexpected error occurred');
             }
@@ -335,7 +388,8 @@ const ProductPostForm: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (!validateData()) {
+        const isValid = await validateData();
+        if (!isValid) {
             return;
         }
 
@@ -381,10 +435,10 @@ const ProductPostForm: React.FC = () => {
                 });
                 setRedditReviewsInput('');
             }
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            if (axios.isAxiosError(error)) {
-                alert(`Error: ${error.response?.data?.message || 'Failed to create post'}`);
+        } catch (err) {
+            console.error('Error submitting form:', err);
+            if (axios.isAxiosError(err)) {
+                alert(`Error: ${err.response?.data?.message || 'Failed to create post'}`);
             } else {
                 alert('An unexpected error occurred');
             }
@@ -424,12 +478,12 @@ const ProductPostForm: React.FC = () => {
         return false;
     };
 
-    const ErrorMessage: React.FC<{ error?: string }> = ({ error }) => {
-        if (!error) return null;
+    const ErrorMessage: React.FC<{ error?: string }> = ({ error: errorMsg }) => {
+        if (!errorMsg) return null;
         return (
             <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
                 <AlertCircle className="w-4 h-4" />
-                <span>{error}</span>
+                <span>{errorMsg}</span>
             </div>
         );
     };
@@ -475,13 +529,20 @@ const ProductPostForm: React.FC = () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Product Title *
                     </label>
-                    <input
-                        type="text"
-                        value={formData.productTitle}
-                        onChange={(e) => handleInputChange('productTitle', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.productTitle ? 'border-red-500' : 'border-gray-300'}`}
-                        placeholder="Enter product title"
-                    />
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={formData.productTitle}
+                            onChange={(e) => handleInputChange('productTitle', e.target.value)}
+                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#f59772] focus:border-transparent transition-all ${errors.productTitle ? 'border-red-500' : 'border-gray-300'}`}
+                            placeholder="Enter product title"
+                        />
+                        {isCheckingTitle && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                            </div>
+                        )}
+                    </div>
                     <ErrorMessage error={errors.productTitle} />
                 </div>
 
@@ -562,7 +623,6 @@ const ProductPostForm: React.FC = () => {
                     <ErrorMessage error={errors.productPrice} />
                 </div>
 
-                {/* Affiliate Buttons Section */}
                 <div>
                     <div className="flex items-center justify-between mb-4">
                         <label className="block text-sm font-semibold text-gray-700">
@@ -571,7 +631,7 @@ const ProductPostForm: React.FC = () => {
                         <button
                             type="button"
                             onClick={addAffiliateButton}
-                            className="flex items-center cursor-pointer gap-2 px-3 py-2 bg-[#FF5F1F] text-white rounded-lg hover:bg-[#FF5F1F] transition-colors text-sm"
+                            className="flex items-center cursor-pointer gap-2 px-3 py-2 bg-[#FF5F1F] text-white rounded-lg hover:bg-[#e54e0f] transition-colors text-sm"
                         >
                             <Plus className="w-4 h-4" />
                             Add Button
@@ -644,7 +704,7 @@ const ProductPostForm: React.FC = () => {
                         type="button"
                         onClick={generateLikesAndDislikes}
                         disabled={!canGenerateLikesDislikes() || isGeneratingLikesDislikes}
-                        className="bg-[#FF5F1F] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="bg-[#FF5F1F] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#e54e0f] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {isGeneratingLikesDislikes ? (
                             <>
@@ -737,7 +797,7 @@ const ProductPostForm: React.FC = () => {
                         onClick={() => {
                             calculateProductRank();
                         }}
-                        className="bg-[#FF5F1F] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#FF5F1F] transition-all mb-2"
+                        className="bg-[#FF5F1F] cursor-pointer text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#e54e0f] transition-all mb-2"
                     >
                         Generate Product Rank{typeof formData.productRank === 'number' ? `: ${formData.productRank}%` : ''}
                     </button>
@@ -747,10 +807,10 @@ const ProductPostForm: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isCheckingTitle}
                         className="w-full bg-[#FF5F1F] text-white py-4 cursor-pointer px-6 rounded-lg font-semibold hover:bg-[#f59772] focus:ring-2 focus:ring-[#f59772] focus:ring-offset-2 transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
-                        {isSubmitting ? 'Creating Post...' : 'Create Product Post'}
+                        {isSubmitting ? 'Creating Post...' : isCheckingTitle ? 'Checking Title...' : 'Create Product Post'}
                     </button>
                 </div>
             </div>
