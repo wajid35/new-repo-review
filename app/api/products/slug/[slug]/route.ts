@@ -14,12 +14,13 @@ const createProductSlug = (title: string): string => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  context: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectToDatabase();
 
-    const { slug } = params;
+    // Await params since they're now a Promise in Next.js 15
+    const { slug } = await context.params;
 
     if (!slug) {
       return NextResponse.json(
@@ -29,7 +30,6 @@ export async function GET(
     }
 
     // Fetch all products and find the one matching the slug
-    // This approach is necessary since we're generating slugs dynamically
     const products = await Post.find({}).lean();
 
     const matchedProduct = products.find(product => {
