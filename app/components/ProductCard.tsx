@@ -150,7 +150,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, rank }) => {
           </Link>
           <a
             href={product.affiliateLink ?? '#'}
-            className="bg-green-600 hover:bg-green-700 text-white text-center py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+            className="hover:bg-[#FF5F1F] text-black text-center py-2 px-4 rounded-lg border-2 border-[#FF5F1F] font-medium transition-colors flex items-center justify-center gap-2"
             target="_blank"
             rel="noopener noreferrer"
           >

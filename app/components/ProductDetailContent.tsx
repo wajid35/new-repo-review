@@ -43,6 +43,9 @@ interface IProduct {
     affiliateLink?: string;
     redditReviews?: IRedditReview[];
     likesAndDislikes?: LikesDislikesData;
+    positiveReviewPercentage?: number;
+    neutralReviewPercentage?: number;
+    negativeReviewPercentage?: number;
 }
 
 interface ProductDetailProps {
@@ -57,6 +60,20 @@ const createProductSlug = (title: string): string => {
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
         .trim();
+};
+
+// Helper function to determine rank text based on review percentages
+const getRankText = (product: IProduct): string => {
+    const positive = product.positiveReviewPercentage || 0;
+    const negative = product.negativeReviewPercentage || 0;
+    const neutral = product.neutralReviewPercentage || 0;
+    
+    // If positive reviews are more than negative + neutral combined
+    if (positive > (negative + neutral)) {
+        return "#Top Ranked";
+    } else {
+        return "#Mid Ranked";
+    }
 };
 
 // --- Helper Components ---
@@ -506,11 +523,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productSlug }) => {
                     </div>
 
                     <div className="lg:col-span-8 space-y-4">
-                        {product.productRank && (
-                            <div className="text-sm text-gray-500">
-                                #{product.productRank} in <Link href={`/categories/${product.category.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}><span className="underline cursor-pointer hover:text-[#FF5F1F]">{product.category}</span></Link>
-                            </div>
-                        )}
+                        <div className="text-sm text-gray-500">
+                            {getRankText(product)} in <Link href={`/categories/${product.category.replace(/\s+/g, '-').replace(/\(|\)/g, '')}`}><span className="underline cursor-pointer hover:text-[#FF5F1F]">{product.category}</span></Link>
+                        </div>
 
                         <div className="text-sm font-medium text-gray-700">
                             {product.productTitle.split(' ')[0]}
