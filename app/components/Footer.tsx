@@ -15,15 +15,15 @@ const Footer = () => {
                           <Link href="/"> 
            <div className="flex items-center gap-2">
              <Image 
-               src="/Transparent.png" 
+               src="/logo-original.png" 
                alt="Logo" 
-               width={36} 
-               height={36} 
-               className="h-14 w-35" 
+               width={9} 
+               height={9} 
+               className="h-9 w-9" 
                quality={100}
                priority
              />
-              {/* <span className="text-[#FF5F1F] font-bold text-xl">RedditRevs</span> */} 
+              <span className="text-[#FF5F1F] font-bold text-2xl">RedditRevs</span> 
               </div>
                </Link>
             {/* <span className="text-[#FF5F1F] font-semibold text-lg">RedditRevs</span> */}
