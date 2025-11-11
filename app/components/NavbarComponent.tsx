@@ -31,7 +31,7 @@ export default function Navbar() {
                           alt="Logo" 
                           width={9} 
                           height={9} 
-                          className="h-9 w-9" 
+                          className="h-7 w-7" 
                           quality={100}
                           priority
                         />
