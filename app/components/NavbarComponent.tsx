@@ -1,6 +1,6 @@
 "use client";
 import Button from "@/app/components/Button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
@@ -15,30 +15,58 @@ const navLinks = [
 
 export default function Navbar() {
   const [isOpen, setisOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
-<section className="py-4 lg:py-8 fixed w-full top-0 bg-white z-50">
-  <div className="max-w-7xl mx-auto px-6">
-    <div className="bg-white/80 border border-[#FF5F1F]/30 text-[#FF5F1F] rounded-[27px] md:rounded-full shadow-md">
-
+      <section className={twMerge(
+        "py-4 lg:py-8 fixed w-full top-0 z-50 transition-all duration-300",
+        isScrolled ? "bg-white/70 backdrop-blur-lg shadow-lg" : "bg-white"
+      )}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className={twMerge(
+            "border border-[#FF5F1F]/30 text-[#FF5F1F] rounded-[27px] md:rounded-full shadow-md transition-all duration-300",
+            isScrolled ? "bg-white/60 backdrop-blur-md" : "bg-white/80"
+          )}>
             <div className="flex items-center justify-between p-2 px-4 md:pr-2">
 
               {/* Left: Logo */}
-          <Link href="/"> 
-            <div className="flex items-center gap-2">
-                        <Image 
-                          src="/logo-original.png" 
-                          alt="Logo" 
-                          width={9} 
-                          height={9} 
-                          className="h-7 w-7" 
-                          quality={100}
-                          priority
-                        />
-                         <span className="text-[#FF5F1F] font-bold text-2xl">RedditRevs</span> 
-                         </div>
-               </Link>
+              <Link href="/"> 
+                <div className="flex items-center">
+                  <svg className="w-32 h-10 md:w-40 md:h-12" viewBox="0 0 800 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(0, 20)" fill="#FF4500">
+                      <g transform="translate(20, 0)">
+                        <path d="M 25 10 L 50 45 L 35 45 L 35 50 L 15 50 L 15 45 L 0 45 Z" fill="#FF4500"/>
+                        <rect x="15" y="45" width="20" height="50" fill="#FF4500"/>
+                      </g>
 
+                      <text x="72" y="100" fontFamily="Arial, sans-serif" fontSize="100" fontWeight="700" fill="#FF4500">
+                        RedditRev
+                      </text>
+
+                      <g transform="translate(320, -3)">
+                        <circle cx="20" cy="15" r="5" fill="white" stroke="#FF4500" strokeWidth="3"/>
+                        <circle cx="20" cy="30" r="15" fill="white" stroke="#FF4500" strokeWidth="3"/>
+                        <circle cx="15" cy="30" r="3" fill="#FF4500"/>
+                        <circle cx="25" cy="30" r="3" fill="#FF4500"/>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+              </Link>
 
               {/* Middle: Nav Links */}
               <nav className="hidden lg:flex gap-6 font-medium text-black">
